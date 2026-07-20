@@ -34,43 +34,28 @@ export default async function HrDashboard() {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(today.getMonth() - 1);
 
-  // Queries
-  const [
-    totalEmp,
-    activeEmp,
-    probationEmp,
-    noticeEmp,
-    newJoiners,
-    absentToday,
-    pendingDocs,
-    pendingSubmissions,
-    issuedAssets,
-    recentActivity,
-    recentVisitors,
-    reminders,
-    festivals,
-    sitesCount,
-    lastEom
-  ] = await Promise.all([
-    db.employee.count(),
-    db.employee.count({ where: { employmentStatus: { in: ['ACTIVE', 'CONFIRMED', 'PROBATION'] } } }),
-    db.employee.count({ where: { employmentStatus: 'PROBATION' } }),
-    db.employee.count({ where: { employmentStatus: 'NOTICE' } }),
-    db.employee.count({ where: { joiningDate: { gte: oneMonthAgo } } }),
-    db.attendance.count({ where: { date: today, status: 'Absent' } }),
-    db.document.count({ where: { verificationStatus: 'PENDING' } }),
-    db.employeeSubmission.count({ where: { status: 'PENDING' } }),
-    db.issuedAsset.count({ where: { status: 'Issued' } }),
-    db.auditLog.findMany({ orderBy: { timestamp: 'desc' }, take: 6 }),
-    db.visitor.findMany({ orderBy: { entryTime: 'desc' }, take: 4, include: { site: true } }),
-    db.reminder.findMany({ where: { status: 'PENDING' }, orderBy: { date: 'asc' }, take: 4 }),
-    db.festival.findMany({ where: { date: { gte: today } }, orderBy: { date: 'asc' }, take: 2 }),
-    db.site.findMany({ include: { _count: { select: { employees: true } } } }),
-    db.employeeOfTheMonth.findFirst({
-      orderBy: { declaredAt: 'desc' },
-      include: { employee: { include: { department: true, site: true } } },
-    }),
-  ]);
+  // Run queries sequentially or in small batches to prevent connection pool exhaustion in serverless environments
+  const totalEmp = await db.employee.count();
+  const activeEmp = await db.employee.count({ where: { employmentStatus: { in: ['ACTIVE', 'CONFIRMED', 'PROBATION'] } } });
+  const probationEmp = await db.employee.count({ where: { employmentStatus: 'PROBATION' } });
+  const noticeEmp = await db.employee.count({ where: { employmentStatus: 'NOTICE' } });
+  const newJoiners = await db.employee.count({ where: { joiningDate: { gte: oneMonthAgo } } });
+  
+  const absentToday = await db.attendance.count({ where: { date: today, status: 'Absent' } });
+  const pendingDocs = await db.document.count({ where: { verificationStatus: 'PENDING' } });
+  const pendingSubmissions = await db.employeeSubmission.count({ where: { status: 'PENDING' } });
+  const issuedAssets = await db.issuedAsset.count({ where: { status: 'Issued' } });
+  
+  const recentActivity = await db.auditLog.findMany({ orderBy: { timestamp: 'desc' }, take: 6 });
+  const recentVisitors = await db.visitor.findMany({ orderBy: { entryTime: 'desc' }, take: 4, include: { site: true } });
+  const reminders = await db.reminder.findMany({ where: { status: 'PENDING' }, orderBy: { date: 'asc' }, take: 4 });
+  const festivals = await db.festival.findMany({ where: { date: { gte: today } }, orderBy: { date: 'asc' }, take: 2 });
+  
+  const sitesCount = await db.site.findMany({ include: { _count: { select: { employees: true } } } });
+  const lastEom = await db.employeeOfTheMonth.findFirst({
+    orderBy: { declaredAt: 'desc' },
+    include: { employee: { include: { department: true, site: true } } },
+  });
 
   // Birthday today calculation
   const allEmployees = await db.employee.findMany({
