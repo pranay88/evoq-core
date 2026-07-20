@@ -7,7 +7,8 @@ import {
   createInventoryItemAction,
   addStockAction,
   transferStockAction,
-  adjustStockAction
+  adjustStockAction,
+  createCategoryAction
 } from '@/app/actions/inventory';
 import {
   Package,
@@ -54,6 +55,12 @@ export default function InventoryDashboard({
   const [filterType, setFilterType] = useState<'all' | 'available' | 'low_stock' | 'out_of_stock'>('all');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [categoryError, setCategoryError] = useState('');
+
   const [restockItemId, setRestockItemId] = useState<string | null>(null);
   const [restockQty, setRestockQty] = useState(1);
   const [restockRemarks, setRestockRemarks] = useState('');
@@ -97,6 +104,14 @@ export default function InventoryDashboard({
     if (filterType === 'available') return item.currentStock > 0;
     if (filterType === 'low_stock') return item.currentStock <= item.minimumStockLevel && item.currentStock > 0;
     if (filterType === 'out_of_stock') return item.currentStock === 0;
+    
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!item.name.toLowerCase().includes(q) && !item.itemCode.toLowerCase().includes(q)) {
+        return false;
+      }
+    }
+    
     return true;
   });
 
@@ -119,10 +134,27 @@ export default function InventoryDashboard({
   };
 
   const getCategoryItems = (catId: string) => {
-    return items.filter(item => item.categoryId === catId);
+    return filteredItems.filter(item => item.categoryId === catId);
   };
 
   const activeCategory = categories.find(c => c.id === selectedCategoryId);
+
+  // Submit New Category
+  const handleCreateCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+    setCategoryError('');
+    startTransition(async () => {
+      const res = await createCategoryAction(newCategoryName);
+      if (res.success) {
+        setCreateCategoryOpen(false);
+        setNewCategoryName('');
+        router.refresh();
+      } else {
+        setCategoryError(res.message);
+      }
+    });
+  };
 
   // Submit Restock
   const handleRestockSubmit = (e: React.FormEvent) => {
@@ -209,6 +241,13 @@ export default function InventoryDashboard({
             Export Inventory
           </Link>
           <button
+            onClick={() => setCreateCategoryOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium rounded-md shadow-sm transition-all border border-border"
+          >
+            <Plus className="w-4 h-4" />
+            New Category
+          </button>
+          <button
             onClick={() => setCreateModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/95 text-primary-foreground text-sm font-medium rounded-md shadow-sm transition-all"
           >
@@ -290,11 +329,26 @@ export default function InventoryDashboard({
       {/* Main Stock Table or Categories Grid */}
       {(!selectedCategoryId && filterType === 'all') ? (
         <div className="space-y-4">
-          <div className="px-1 py-2 border-b border-border/60">
-            <h2 className="text-lg font-serif font-bold text-foreground">
-              Select Inventory Category &mdash; {activeSiteName}
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5 font-sans">Click on a category card below to view and manage its stock items.</p>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-1 py-2 border-b border-border/60 gap-4">
+            <div>
+              <h2 className="text-lg font-serif font-bold text-foreground">
+                Select Inventory Category &mdash; {activeSiteName}
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5 font-sans">Click on a category card below to view and manage its stock items.</p>
+            </div>
+            
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                placeholder="Search items by name or code..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <div className="absolute left-3 top-3 text-muted-foreground">
+                <Box className="w-4 h-4" />
+              </div>
+            </div>
           </div>
           {/* Categories Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -344,20 +398,34 @@ export default function InventoryDashboard({
       ) : (
         <div className="space-y-4">
           {/* Back Navigation Bar */}
-          <div className="flex items-center gap-4 mb-2 select-none">
-            <button
-              onClick={() => {
-                setSelectedCategoryId(null);
-                setFilterType('all');
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-border bg-card hover:bg-secondary text-foreground text-xs font-semibold rounded-md transition-colors shadow-sm font-sans"
-            >
-              <ChevronLeft className="w-4 h-4" /> Back to Categories
-            </button>
-            <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 font-sans">
-              <span>Inventory</span>
-              <span className="text-muted-foreground/60">/</span>
-              <span className="text-foreground">{selectedCategoryId ? activeCategory?.name : 'Filtered Listings'}</span>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2 select-none border-b border-border/60 pb-3">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => {
+                  setSelectedCategoryId(null);
+                  setSearchQuery('');
+                }}
+                className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors bg-secondary/30 px-3 py-1.5 rounded-md"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back to Categories
+              </button>
+              <h2 className="text-lg font-serif font-bold text-foreground flex items-center gap-2">
+                {activeCategory?.name} <span className="text-muted-foreground text-sm font-sans font-normal">&mdash; {activeSiteName}</span>
+              </h2>
+            </div>
+            
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                placeholder="Search items by name or code..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <div className="absolute left-3 top-2.5 text-muted-foreground">
+                <Box className="w-4 h-4" />
+              </div>
             </div>
           </div>
 
@@ -796,6 +864,45 @@ export default function InventoryDashboard({
               >
                 {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 Deduct Stock
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: Create Category */}
+      {createCategoryOpen && (
+        <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card w-full max-w-md border border-border rounded-lg shadow-lg p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center border-b border-border pb-3">
+              <h3 className="text-md font-serif font-bold text-foreground">Create New Category</h3>
+              <button onClick={() => setCreateCategoryOpen(false)} className="p-1 hover:bg-secondary rounded text-muted-foreground hover:text-foreground">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {categoryError && <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded">{categoryError}</div>}
+
+            <form onSubmit={handleCreateCategory} className="space-y-4 text-xs font-sans">
+              <div>
+                <label className="block font-semibold text-muted-foreground uppercase mb-1.5">Category Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="e.g., Heavy Machinery, Vehicles"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isPending}
+                className="w-full flex items-center justify-center py-2.5 bg-primary hover:bg-primary/95 text-primary-foreground font-medium rounded-md shadow-sm transition-all disabled:opacity-50"
+              >
+                {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Create Category
               </button>
             </form>
           </div>

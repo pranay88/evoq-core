@@ -332,10 +332,45 @@ export async function adjustStockAction(
     });
 
     revalidatePath('/admin/inventory');
+    revalidatePath('/hr/inventory');
 
     return { success: true, message: `Successfully recorded ${type.toLowerCase()} of ${quantity} units.` };
   } catch (error: any) {
     console.error('Adjust stock error:', error);
     return { success: false, message: error.message || 'Failed to adjust stock.' };
+  }
+}
+
+// Create new inventory category
+export async function createCategoryAction(name: string) {
+  const session = await getSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'HR')) {
+    return { success: false, message: 'Unauthorized. Only Admin or HR can manage categories.' };
+  }
+
+  if (!name || name.trim() === '') {
+    return { success: false, message: 'Category name is required.' };
+  }
+
+  try {
+    const existing = await db.inventoryCategory.findUnique({
+      where: { name: name.trim() },
+    });
+
+    if (existing) {
+      return { success: false, message: 'Category already exists.' };
+    }
+
+    await db.inventoryCategory.create({
+      data: { name: name.trim() },
+    });
+
+    revalidatePath('/admin/inventory');
+    revalidatePath('/hr/inventory');
+
+    return { success: true, message: 'Category created successfully.' };
+  } catch (error: any) {
+    console.error('Create category error:', error);
+    return { success: false, message: error.message || 'Failed to create category.' };
   }
 }
