@@ -354,7 +354,7 @@ export default function EmployeeForm({ initialData, sites, departments }: Employ
               type="email"
               defaultValue={initialData?.officialEmail || ''}
               className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
-              placeholder="username@evoqrealtech.com"
+              placeholder="username@houseofevoq.com"
             />
             {state.errors?.officialEmail && <p className="text-xs text-destructive mt-1">{state.errors.officialEmail[0]}</p>}
           </div>

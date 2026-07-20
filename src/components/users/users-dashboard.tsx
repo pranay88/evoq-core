@@ -283,7 +283,7 @@ export default function UsersDashboard({
                   value={createEmail}
                   onChange={(e) => setCreateEmail(e.target.value)}
                   className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                  placeholder="e.g. rahul@evoqrealtech.com"
+                  placeholder="e.g. rahul@houseofevoq.com"
                 />
               </div>
 

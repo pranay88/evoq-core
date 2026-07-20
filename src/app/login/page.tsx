@@ -111,7 +111,7 @@ function LoginContent() {
                 required
                 autoComplete="email"
                 className="w-full px-4 py-3 bg-card border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-foreground placeholder:text-muted-foreground/50 transition-all font-sans text-sm"
-                placeholder="email@evoqrealtech.com"
+                placeholder="email@houseofevoq.com"
               />
               {state.errors?.email && (
                 <p className="mt-1.5 text-xs text-destructive font-sans">{state.errors.email[0]}</p>
@@ -175,28 +175,6 @@ function LoginContent() {
             </div>
           </form>
 
-          {/* Demo Credentials Box */}
-          <div className="mt-12 p-5 bg-secondary rounded-lg border border-border">
-            <h3 className="text-sm font-semibold text-foreground mb-3 font-sans">Demo Credentials</h3>
-            <div className="space-y-2 text-xs text-muted-foreground font-sans">
-              <div className="flex justify-between border-b border-border/50 pb-1">
-                <span><strong>HR:</strong> hr@evoqrealtech.com</span>
-                <span className="text-foreground">Password@123</span>
-              </div>
-              <div className="flex justify-between border-b border-border/50 pb-1">
-                <span><strong>Admin:</strong> admin@evoqrealtech.com</span>
-                <span className="text-foreground">Password@123</span>
-              </div>
-              <div className="flex justify-between border-b border-border/50 pb-1">
-                <span><strong>Front Desk (HQ):</strong> fd1.hq@evoqrealtech.com</span>
-                <span className="text-foreground">Password@123</span>
-              </div>
-              <div className="flex justify-between">
-                <span><strong>Front Desk (Noida):</strong> fd1.on@evoqrealtech.com</span>
-                <span className="text-foreground">Password@123</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

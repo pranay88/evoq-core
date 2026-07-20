@@ -175,7 +175,7 @@ export default function AttendancePortalClient() {
                   value={emailOrId}
                   onChange={(e) => setEmailOrId(e.target.value)}
                   className="w-full px-4 py-3.5 bg-[#121212] border border-[#2c2923] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#c5a880] focus:border-[#c5a880] text-[#faf9f6] placeholder:text-muted-foreground/30 transition-all font-sans text-sm"
-                  placeholder="e.g. employee@evoqrealtech.com or EVOQ101"
+                  placeholder="e.g. employee@houseofevoq.com or EVOQ101"
                 />
               </div>
 

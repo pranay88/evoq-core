@@ -69,14 +69,14 @@ function ResetPasswordContent() {
           <div>
             <h1 className="text-3xl font-serif text-foreground mb-2">Set New Password</h1>
             <p className="text-muted-foreground font-sans text-sm mb-8">
-              Resetting password for: <strong className="text-foreground">{emailParam || 'demo@evoqrealtech.com'}</strong>
+              Resetting password for: <strong className="text-foreground">{emailParam || 'demo@houseofevoq.com'}</strong>
             </p>
 
             {!emailParam && (
               <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-800 text-xs rounded-md font-sans flex gap-2">
                 <ShieldAlert className="w-5 h-5 shrink-0" />
                 <span>
-                  <strong>Warning:</strong> No email parameter was found in the URL. If you came here directly, password resets will default to: <strong>demo@evoqrealtech.com</strong>.
+                  <strong>Warning:</strong> No email parameter was found in the URL. If you came here directly, password resets will default to: <strong>demo@houseofevoq.com</strong>.
                 </span>
               </div>
             )}

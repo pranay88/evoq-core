@@ -19,7 +19,7 @@ async function main() {
       code: 'EVOQ-HQ',
       address: '101 Prestige Tower, MG Road, Bangalore, KA, 560001',
       phone: '+91 80 4567 8901',
-      email: 'hq@evoqrealtech.com',
+      email: 'hq@houseofevoq.com',
       status: 'ACTIVE',
     },
   });
@@ -32,7 +32,7 @@ async function main() {
       code: 'EVOQ-ON',
       address: 'Plot 12, Tech Park, Sector 62, Noida, UP, 201301',
       phone: '+91 120 456 7892',
-      email: 'noida@evoqrealtech.com',
+      email: 'noida@houseofevoq.com',
       status: 'ACTIVE',
     },
   });
@@ -45,7 +45,7 @@ async function main() {
       code: 'EVOQ-HZ',
       address: 'Floor 5, Sky Rise, Gachibowli, Hyderabad, TS, 500032',
       phone: '+91 40 4567 8903',
-      email: 'hyd@evoqrealtech.com',
+      email: 'hyd@houseofevoq.com',
       status: 'ACTIVE',
     },
   });
@@ -58,7 +58,7 @@ async function main() {
       code: 'EVOQ-VT',
       address: 'Building B, Ocean View, Andheri West, Mumbai, MH, 400053',
       phone: '+91 22 4567 8904',
-      email: 'mumbai@evoqrealtech.com',
+      email: 'mumbai@houseofevoq.com',
       status: 'ACTIVE',
     },
   });
@@ -103,11 +103,11 @@ async function main() {
 
   // HR User
   const userHr = await prisma.user.upsert({
-    where: { email: 'hr@evoqrealtech.com' },
+    where: { email: 'hr@houseofevoq.com' },
     update: {},
     create: {
       name: 'Aisha Sharma',
-      email: 'hr@evoqrealtech.com',
+      email: 'hr@houseofevoq.com',
       passwordHash: defaultPasswordHash,
       role: 'HR',
       status: 'ACTIVE',
@@ -116,11 +116,11 @@ async function main() {
 
   // Admin User
   const userAdmin = await prisma.user.upsert({
-    where: { email: 'admin@evoqrealtech.com' },
+    where: { email: 'admin@houseofevoq.com' },
     update: {},
     create: {
       name: 'Vikram Malhotra',
-      email: 'admin@evoqrealtech.com',
+      email: 'admin@houseofevoq.com',
       passwordHash: defaultPasswordHash,
       role: 'ADMIN',
       status: 'ACTIVE',
@@ -129,14 +129,14 @@ async function main() {
 
   // Front Desk Users (8 users, 2 per site)
   const frontDeskUsersInfo = [
-    { name: 'Rahul Gowda', email: 'fd1.hq@evoqrealtech.com', siteId: siteHq.id },
-    { name: 'Kavitha Raj', email: 'fd2.hq@evoqrealtech.com', siteId: siteHq.id },
-    { name: 'Amit Verma', email: 'fd1.on@evoqrealtech.com', siteId: siteNoida.id },
-    { name: 'Pooja Singh', email: 'fd2.on@evoqrealtech.com', siteId: siteNoida.id },
-    { name: 'Suresh Reddy', email: 'fd1.hz@evoqrealtech.com', siteId: siteHyd.id },
-    { name: 'Divya Teja', email: 'fd2.hz@evoqrealtech.com', siteId: siteHyd.id },
-    { name: 'Rajesh Patil', email: 'fd1.vt@evoqrealtech.com', siteId: siteMumbai.id },
-    { name: 'Sneha Joshi', email: 'fd2.vt@evoqrealtech.com', siteId: siteMumbai.id },
+    { name: 'Rahul Gowda', email: 'fd1.hq@houseofevoq.com', siteId: siteHq.id },
+    { name: 'Kavitha Raj', email: 'fd2.hq@houseofevoq.com', siteId: siteHq.id },
+    { name: 'Amit Verma', email: 'fd1.on@houseofevoq.com', siteId: siteNoida.id },
+    { name: 'Pooja Singh', email: 'fd2.on@houseofevoq.com', siteId: siteNoida.id },
+    { name: 'Suresh Reddy', email: 'fd1.hz@houseofevoq.com', siteId: siteHyd.id },
+    { name: 'Divya Teja', email: 'fd2.hz@houseofevoq.com', siteId: siteHyd.id },
+    { name: 'Rajesh Patil', email: 'fd1.vt@houseofevoq.com', siteId: siteMumbai.id },
+    { name: 'Sneha Joshi', email: 'fd2.vt@houseofevoq.com', siteId: siteMumbai.id },
   ];
 
   for (const fd of frontDeskUsersInfo) {
@@ -182,7 +182,7 @@ async function main() {
       joiningDate: new Date('2024-03-15'),
       employmentType: 'FULL_TIME',
       employmentStatus: 'CONFIRMED',
-      officialEmail: 'rohan.sen@evoqrealtech.com',
+      officialEmail: 'rohan.sen@houseofevoq.com',
       bankName: 'HDFC Bank',
       bankAccountHolderName: 'Rohan Sen',
       bankAccountNumber: '50100234567890',
@@ -218,7 +218,7 @@ async function main() {
       joiningDate: new Date(today.getFullYear(), today.getMonth() - 2, 1), // 2 months ago
       employmentType: 'FULL_TIME',
       employmentStatus: 'PROBATION', // still on probation
-      officialEmail: 'priya.nair@evoqrealtech.com',
+      officialEmail: 'priya.nair@houseofevoq.com',
       bankName: 'ICICI Bank',
       bankAccountHolderName: 'Priya Nair',
       bankAccountNumber: '000401234567',
@@ -254,7 +254,7 @@ async function main() {
       joiningDate: new Date('2023-08-01'),
       employmentType: 'FULL_TIME',
       employmentStatus: 'CONFIRMED',
-      officialEmail: 'arjun.kapoor@evoqrealtech.com',
+      officialEmail: 'arjun.kapoor@houseofevoq.com',
       bankName: 'Axis Bank',
       bankAccountHolderName: 'Arjun Kapoor',
       bankAccountNumber: '912010045678901',
@@ -286,7 +286,7 @@ async function main() {
       joiningDate: new Date('2022-01-10'),
       employmentType: 'FULL_TIME',
       employmentStatus: 'CONFIRMED',
-      officialEmail: 'admin@evoqrealtech.com',
+      officialEmail: 'admin@houseofevoq.com',
     },
   });
 
@@ -312,7 +312,7 @@ async function main() {
       joiningDate: new Date('2022-02-15'),
       employmentType: 'FULL_TIME',
       employmentStatus: 'CONFIRMED',
-      officialEmail: 'hr@evoqrealtech.com',
+      officialEmail: 'hr@houseofevoq.com',
     },
   });
 
@@ -652,8 +652,8 @@ async function main() {
       entryTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 0, 0),
       exitTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 11, 30, 0),
       isExisting: false,
-      createdById: frontDeskUsersInfo[2].email === 'fd1.on@evoqrealtech.com' 
-        ? (await prisma.user.findUnique({ where: { email: 'fd1.on@evoqrealtech.com' } })).id 
+      createdById: frontDeskUsersInfo[2].email === 'fd1.on@houseofevoq.com' 
+        ? (await prisma.user.findUnique({ where: { email: 'fd1.on@houseofevoq.com' } })).id 
         : userAdmin.id,
     },
   });
@@ -681,7 +681,7 @@ async function main() {
       numberOfVisitors: 2,
       entryTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 0, 0),
       isExisting: false,
-      createdById: (await prisma.user.findUnique({ where: { email: 'fd1.hq@evoqrealtech.com' } })).id,
+      createdById: (await prisma.user.findUnique({ where: { email: 'fd1.hq@houseofevoq.com' } })).id,
     },
   });
 

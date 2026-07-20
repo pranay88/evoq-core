@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
             <div className="p-4 bg-secondary rounded-md border border-border text-xs text-muted-foreground font-sans mb-8">
               <strong>Demo Tip:</strong> For testing, you can access the reset page directly by clicking the link below:
               <br />
-              <Link href="/reset-password?email=demo@evoqrealtech.com" className="text-primary underline mt-2 block font-semibold">
+              <Link href="/reset-password?email=demo@houseofevoq.com" className="text-primary underline mt-2 block font-semibold">
                 Go to Reset Password Page
               </Link>
             </div>
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 bg-card border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-foreground placeholder:text-muted-foreground/50 transition-all font-sans text-sm"
-                  placeholder="email@evoqrealtech.com"
+                  placeholder="email@houseofevoq.com"
                 />
               </div>
 
