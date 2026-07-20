@@ -7,6 +7,12 @@ import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // Generate a secure self-onboarding invitation
 export async function generateInvitationAction(email: string, phone?: string) {
@@ -102,11 +108,6 @@ export async function submitOnboardingAction(token: string, formData: FormData) 
     const filePhoto = formData.getAll('file_photo') as File[];
     const fileAcademic = formData.getAll('file_academic') as File[];
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'documents');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
     const savedFiles: Record<string, any> = {};
 
     const saveCandidateFiles = async (files: File[], category: string) => {
@@ -117,16 +118,30 @@ export async function submitOnboardingAction(token: string, formData: FormData) 
         const file = files[i];
         if (!file || file.size === 0) continue;
         const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        
         const timestamp = Date.now();
         const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
         const diskName = `ONBOARD_${invitation.id.substring(0, 8)}_${category.replace(/\s+/g, '_')}_${i + 1}_${timestamp}_${cleanFileName}`;
-        const filePath = path.join(uploadDir, diskName);
         
-        fs.writeFileSync(filePath, buffer);
+        const { error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(diskName, arrayBuffer, {
+            contentType: file.type,
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error('Supabase upload error for onboarding:', uploadError);
+          continue;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from('documents')
+          .getPublicUrl(diskName);
+        
         fileObjects.push({
           name: file.name,
-          path: `/uploads/documents/${diskName}`,
+          path: publicUrlData.publicUrl,
         });
       }
       

@@ -7,6 +7,13 @@ import { revalidatePath } from 'next/cache';
 import fs from 'fs';
 import path from 'path';
 
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 // Max file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
@@ -49,20 +56,28 @@ export async function uploadDocumentAction(prevState: any, formData: FormData) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Create uploads directory if not exists
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'documents');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
     const timestamp = Date.now();
     const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const diskFileName = `${employee.employeeId}_${category.replace(/\s+/g, '_')}_${timestamp}_${cleanFileName}`;
-    const filePath = path.join(uploadDir, diskFileName);
 
-    // Write file to local disk (Supabase Storage mock emulation)
-    fs.writeFileSync(filePath, buffer);
-    const publicUrl = `/uploads/documents/${diskFileName}`;
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('documents')
+      .upload(diskFileName, arrayBuffer, {
+        contentType: file.type,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('Supabase upload error:', uploadError);
+      return { success: false, message: 'Failed to upload document to cloud storage.' };
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('documents')
+      .getPublicUrl(diskFileName);
+
+    const publicUrl = publicUrlData.publicUrl;
 
     const expiryDate = expiryDateVal ? new Date(expiryDateVal) : null;
 

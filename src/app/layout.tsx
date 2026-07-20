@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
@@ -30,8 +31,10 @@ export default function RootLayout({
       className={`${inter.variable} ${playfair.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <script
+      <body className="min-h-full bg-background text-foreground selection:bg-primary/20 selection:text-foreground" suppressHydrationWarning>
+        <Script
+          id="theme-initializer"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
@@ -49,8 +52,6 @@ export default function RootLayout({
             `,
           }}
         />
-      </head>
-      <body className="min-h-full bg-background text-foreground selection:bg-primary/20 selection:text-foreground">
         {children}
       </body>
     </html>
