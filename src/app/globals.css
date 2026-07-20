@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+:root {
+  --background: #faf9f6; /* Premium warm white/ivory */
+  --foreground: #1c1c1c; /* Charcoal typography */
+  
+  --card: #ffffff;
+  --card-foreground: #1c1c1c;
+  
+  --popover: #ffffff;
+  --popover-foreground: #1c1c1c;
+  
+  --primary: #c5a880; /* Muted rose-gold / bronze accent */
+  --primary-foreground: #ffffff;
+  
+  --secondary: #f4f2ec; /* Soft warm grey */
+  --secondary-foreground: #1c1c1c;
+  
+  --muted: #f0ede5;
+  --muted-foreground: #6e6a63;
+  
+  --accent: #e6dfd3;
+  --accent-foreground: #1c1c1c;
+  
+  --destructive: #b94a48; /* Premium deep crimson/red */
+  --destructive-foreground: #ffffff;
+  
+  --border: #e6e3da;
+  --input: #e6e3da;
+  --ring: #c5a880;
+  
+  --radius: 0.6rem;
+}
+
+.dark {
+  --background: #121212;
+  --foreground: #faf9f6;
+  
+  --card: #1c1c1c;
+  --card-foreground: #faf9f6;
+  
+  --popover: #1c1c1c;
+  --popover-foreground: #faf9f6;
+  
+  --primary: #c5a880;
+  --primary-foreground: #121212;
+  
+  --secondary: #1e1e1e;
+  --secondary-foreground: #faf9f6;
+  
+  --muted: #242424;
+  --muted-foreground: #a09a8f;
+  
+  --accent: #2c2923;
+  --accent-foreground: #faf9f6;
+  
+  --destructive: #df5856;
+  --destructive-foreground: #ffffff;
+  
+  --border: #2c2923;
+  --input: #2c2923;
+  --ring: #c5a880;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: var(--font-serif), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4, h5, h6, .font-serif-title {
+  font-family: var(--font-serif);
+  letter-spacing: -0.02em;
+}
+
+/* Custom styling utilities for scrollbars and premium look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(230, 227, 218, 0.5);
+}
+
+.dark .glassmorphism {
+  background: rgba(28, 28, 28, 0.7);
+  border-color: rgba(44, 41, 35, 0.5);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #c5a880 0%, #ab865b 100%);
+}
+
+.gold-border {
+  border-image: linear-gradient(to right, #c5a880, #e6dfd3) 1;
+}

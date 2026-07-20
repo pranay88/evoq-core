@@ -1,0 +1,471 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                  String               @id @default(uuid())
+  email               String               @unique
+  name                String
+  passwordHash        String
+  role                String               // HR, ADMIN, FRONT_DESK
+  siteId              String?              // Optional site restriction (Front Desk users)
+  departmentId        String?              // Optional department association
+  status              String               @default("ACTIVE") // ACTIVE, INACTIVE
+  lastLogin           DateTime?
+  failedLoginAttempts Int                  @default(0)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  site                Site?                @relation(fields: [siteId], references: [id])
+  documentsUploaded   Document[]           @relation("DocumentUploader")
+  invitationsCreated  EmployeeInvitation[] @relation("InvitationCreator")
+  attendanceEntered   Attendance[]         @relation("AttendanceCreator")
+  correctionsMade     AttendanceCorrection[] @relation("CorrectionCreator")
+  transactionsMade    InventoryTransaction[] @relation("TransactionCreator")
+  assetsIssued        IssuedAsset[]        @relation("AssetIssuer")
+  assetsReceived      AssetReturn[]        @relation("AssetReceiver")
+  visitorsCreated     Visitor[]            @relation("VisitorCreator")
+  visitorExitsRecorded VisitorExit[]       @relation("ExitRecorder")
+  visitorCorrectionsMade VisitorCorrection[] @relation("VisitorCorrectionCreator")
+  festivalsCreated    Festival[]           @relation("FestivalCreator")
+  remindersCreated    Reminder[]           @relation("ReminderCreator")
+  approvedLeaves      LeaveRequest[]
+}
+
+model Site {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  address     String
+  phone       String
+  email       String
+  status      String   @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employees      Employee[]
+  users          User[]
+  inventoryItems InventoryItem[]
+  visitors       Visitor[]
+  reminders      Reminder[]
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique
+  headName  String?  // Name of department head
+  status    String   @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees Employee[]
+  reminders Reminder[]
+}
+
+model Employee {
+  id                           String     @id @default(uuid())
+  employeeId                   String     @unique
+  fullName                     String
+  photoUrl                     String?
+  dateOfBirth                  DateTime
+  gender                       String
+  bloodGroup                   String?
+  mobileNumber                 String
+  personalEmail                String
+  currentAddress               String
+  permanentAddress             String
+  emergencyContactName         String
+  emergencyContactNumber       String
+  emergencyContactRelationship String
+
+  // Employment details
+  departmentId       String
+  designation        String
+  reportingManagerId String? // ID or name of reporting manager
+  siteId             String
+  joiningDate        DateTime
+  employmentType     String  // FULL_TIME, CONTRACT, INTERN
+  probationPeriodDays Int     @default(90)
+  confirmationDate   DateTime?
+  officialEmail      String?
+  officialPhone      String?
+  shift              String?
+  noticePeriodDays   Int     @default(30)
+  employmentStatus   String  @default("ACTIVE") // ACTIVE, PROBATION, CONFIRMED, LEAVE, NOTICE, RESIGNED, TERMINATED, INACTIVE
+  lastWorkingDate    DateTime?
+
+  // Bank & Statutory Details (Confidential - HR only)
+  bankName             String?
+  bankAccountHolderName String?
+  bankAccountNumber    String?
+  bankIfscCode         String?
+  panNumber            String?
+  aadhaarNumber        String?
+  uanNumber            String?
+  pfDetails            String?
+  esiDetails           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  department   Department     @relation(fields: [departmentId], references: [id])
+  site         Site           @relation(fields: [siteId], references: [id])
+  documents    Document[]
+  attendance   Attendance[]
+  leaveBalances LeaveBalance[]
+  leaveRequests LeaveRequest[]
+  issuedAssets IssuedAsset[]
+  employeeOfTheMonths EmployeeOfTheMonth[]
+}
+
+model Document {
+  id                 String            @id @default(uuid())
+  employeeId         String
+  category           String            // Aadhaar Card, PAN Card, Offer Letter, NDA, etc.
+  fileName           String
+  filePath           String
+  version            Int               @default(1)
+  verificationStatus String            @default("PENDING") // PENDING, VERIFIED, REJECTED
+  expiryDate         DateTime?
+  remarks            String?
+  uploadedById       String
+  uploadDate         DateTime          @default(now())
+
+  employee   Employee          @relation(fields: [employeeId], references: [id])
+  uploadedBy User              @relation("DocumentUploader", fields: [uploadedById], references: [id])
+  versions   DocumentVersion[]
+}
+
+model DocumentVersion {
+  id           String   @id @default(uuid())
+  documentId   String
+  fileName     String
+  filePath     String
+  version      Int
+  uploadedById String
+  uploadDate   DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id])
+}
+
+model EmployeeInvitation {
+  id          String               @id @default(uuid())
+  email       String
+  phone       String?
+  token       String               @unique
+  status      String               @default("PENDING") // PENDING, SUBMITTED, EXPIRED
+  expiresAt   DateTime
+  createdById String
+  createdAt   DateTime             @default(now())
+
+  createdBy   User                 @relation("InvitationCreator", fields: [createdById], references: [id])
+  submissions EmployeeSubmission[]
+}
+
+model EmployeeSubmission {
+  id           String             @id @default(uuid())
+  invitationId String
+  status       String             @default("PENDING") // PENDING, APPROVED, REJECTED, CORRECTION_REQUESTED
+  personalData String             // JSON string stringified
+  remarks      String?
+  submittedAt  DateTime           @default(now())
+
+  invitation EmployeeInvitation @relation(fields: [invitationId], references: [id])
+}
+
+model Attendance {
+  id            String   @id @default(uuid())
+  employeeId    String
+  date          DateTime
+  checkIn       DateTime?
+  checkOut      DateTime?
+  status        String   // Present, Absent, Half Day, Paid Leave, Unpaid Leave, Weekly Off, Holiday, WFH, Official Duty, On Site
+  workLocation  String   // Site, WFH, On Site etc.
+  workingHours  Float    @default(0.0)
+  lateArrival   Boolean  @default(false)
+  earlyDeparture Boolean  @default(false)
+  overtimeMinutes Int    @default(0)
+  leaveType     String?
+  remarks       String?
+  enteredById   String
+  createdAt     DateTime @default(now())
+
+  employee    Employee               @relation(fields: [employeeId], references: [id])
+  enteredBy   User                   @relation("AttendanceCreator", fields: [enteredById], references: [id])
+  corrections AttendanceCorrection[]
+}
+
+model AttendanceCorrection {
+  id             String   @id @default(uuid())
+  attendanceId   String
+  originalValue  String
+  correctedValue String
+  reason         String
+  correctedById  String
+  correctedAt    DateTime @default(now())
+
+  attendance  Attendance @relation(fields: [attendanceId], references: [id])
+  correctedBy User       @relation("CorrectionCreator", fields: [correctedById], references: [id])
+}
+
+model InventoryCategory {
+  id    String          @id @default(uuid())
+  name  String          @unique // IT Equipment, Stationery, Office Supplies, Pantry Supplies, etc.
+  items InventoryItem[]
+}
+
+model InventoryItem {
+  id                String            @id @default(uuid())
+  itemCode          String            @unique
+  name              String
+  categoryId        String
+  unit              String            // Pcs, Box, Pack, etc.
+  openingStock      Int
+  currentStock      Int
+  minimumStockLevel Int
+  siteId            String
+  storageLocation   String?
+  supplier          String?
+  purchaseRate      Float?
+  lastPurchaseDate  DateTime?
+  condition         String?
+  remarks           String?
+
+  category     InventoryCategory @relation(fields: [categoryId], references: [id])
+  site         Site              @relation(fields: [siteId], references: [id])
+  transactions InventoryTransaction[]
+  assets       IssuedAsset[]
+}
+
+model InventoryTransaction {
+  id             String    @id @default(uuid())
+  itemId         String
+  quantity       Int
+  type           String    // Stock Added, Stock Issued, Stock Returned, Stock Transferred, Stock Damaged, Stock Lost, Stock Adjusted, Transaction Reversed
+  employeeId     String?   // optional reference to employee for stock issues
+  sourceSiteId   String?   // optional for transfers
+  destinationSiteId String? // optional for transfers
+  remarks        String?
+  createdById    String
+  createdAt      DateTime  @default(now())
+
+  item      InventoryItem @relation(fields: [itemId], references: [id])
+  createdBy User          @relation("TransactionCreator", fields: [createdById], references: [id])
+}
+
+model IssuedAsset {
+  id                     String        @id @default(uuid())
+  itemId                 String
+  assetCode              String        @unique
+  serialNumber           String?
+  employeeId             String
+  departmentId           String
+  siteId                 String
+  issueDate              DateTime
+  expectedReturnDate     DateTime?
+  conditionAtIssue       String
+  issuedById             String
+  employeeAcknowledgement Boolean       @default(false)
+  remarks                String?
+  status                 String        @default("Issued") // Available, Issued, Returned, Damaged, Lost, Under Repair, Retired
+
+  item      InventoryItem @relation(fields: [itemId], references: [id])
+  employee  Employee      @relation(fields: [employeeId], references: [id])
+  issuedBy  User          @relation("AssetIssuer", fields: [issuedById], references: [id])
+  returns   AssetReturn[]
+}
+
+model AssetReturn {
+  id                 String      @id @default(uuid())
+  assetId            String
+  returnDate         DateTime    @default(now())
+  conditionAtReturn  String
+  receivedById       String
+  missingAccessories String?
+  damageDetails      String?
+  recoveryAmount     Float       @default(0.0)
+  remarks            String?
+
+  asset      IssuedAsset @relation(fields: [assetId], references: [id])
+  receivedBy User        @relation("AssetReceiver", fields: [receivedById], references: [id])
+}
+
+model Visitor {
+  id               String              @id @default(uuid())
+  name             String
+  phone            String
+  company          String?
+  category         String              // Client, Vendor, Candidate, Consultant, Contractor, Government Official, Delivery Person, Service Provider, Personal Visitor, Other
+  purpose          String
+  personToMeet     String
+  departmentId     String?
+  siteId           String
+  numberOfVisitors Int                 @default(1)
+  vehicleNumber    String?
+  itemsCarried     String?
+  photoUrl         String?
+  entryTime        DateTime            @default(now())
+  exitTime         DateTime?
+  isExisting       Boolean             @default(false)
+  remarks          String?
+  createdById      String
+
+  site        Site                @relation(fields: [siteId], references: [id])
+  createdBy   User                @relation("VisitorCreator", fields: [createdById], references: [id])
+  exits       VisitorExit[]
+  corrections VisitorCorrection[]
+}
+
+model VisitorExit {
+  id           String   @id @default(uuid())
+  visitorId    String
+  exitTime     DateTime @default(now())
+  recordedById String
+
+  visitor    Visitor  @relation(fields: [visitorId], references: [id])
+  recordedBy User     @relation("ExitRecorder", fields: [recordedById], references: [id])
+}
+
+model VisitorCorrection {
+  id             String   @id @default(uuid())
+  visitorId      String
+  correctionNote String
+  correctedById  String
+  correctedAt    DateTime @default(now())
+
+  visitor     Visitor  @relation(fields: [visitorId], references: [id])
+  correctedBy User     @relation("VisitorCorrectionCreator", fields: [correctedById], references: [id])
+}
+
+model Festival {
+  id              String   @id @default(uuid())
+  name            String
+  date            DateTime
+  year            Int
+  description     String?
+  isCompanyHoliday Boolean  @default(false)
+  applicableSites String   // JSON stringified array of site IDs
+  isActive        Boolean  @default(true)
+  createdById     String
+  createdAt       DateTime @default(now())
+
+  createdBy User @relation("FestivalCreator", fields: [createdById], references: [id])
+}
+
+model Reminder {
+  id             String    @id @default(uuid())
+  title          String
+  description    String?
+  date           DateTime
+  time           String?
+  priority       String    @default("MEDIUM") // LOW, MEDIUM, HIGH
+  siteId         String?
+  departmentId   String?
+  assignedRole   String?   // HR, ADMIN, FRONT_DESK
+  createdById    String
+  status         String    @default("PENDING") // PENDING, COMPLETED, OVERDUE
+  completionDate DateTime?
+
+  site       Site?       @relation(fields: [siteId], references: [id])
+  department Department? @relation(fields: [departmentId], references: [id])
+  createdBy  User        @relation("ReminderCreator", fields: [createdById], references: [id])
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  type        String   // BIRTHDAY, FESTIVAL, LOW_STOCK, ONBOARDING, EXPIRED_DOC, RETURN_ASSET, REMINDER
+  targetRole  String?  // HR, ADMIN, FRONT_DESK (optional broadcast)
+  targetUserId String?  // Specific user (optional)
+  siteId      String?  // Broadcast to specific site
+  readBy      String   @default("[]") // JSON stringified array of user IDs who marked it read
+  link        String?
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  userId         String
+  userName       String
+  userRole       String
+  siteCode       String?
+  module         String
+  action         String
+  recordId       String?
+  previousValues String? // JSON string
+  newValues      String? // JSON string
+  reason         String?
+  timestamp      DateTime @default(now())
+  ipAddress      String?
+  deviceInfo     String?
+}
+
+model ExportLog {
+  id                String   @id @default(uuid())
+  reportName        String
+  filters           String   // JSON string
+  generatedById     String
+  generatedByName   String
+  timestamp         DateTime @default(now())
+}
+
+model LoginAttempt {
+  id         String   @id @default(uuid())
+  email      String
+  status     String   // SUCCESS, FAILED
+  timestamp  DateTime @default(now())
+  ipAddress  String?
+  deviceInfo String?
+}
+
+model EmployeeOfTheMonth {
+  id          String   @id @default(uuid())
+  employeeId  String
+  month       Int      // 1-12
+  year        Int
+  declaredAt  DateTime @default(now())
+  score       Float
+  remarks     String?
+  declaredById String
+
+  employee    Employee @relation(fields: [employeeId], references: [id])
+}
+
+model LeaveBalance {
+  id           String   @id @default(uuid())
+  employeeId   String
+  year         Int
+  leaveType    String   // Casual Leave, Sick Leave, Earned Leave
+  totalLeaves  Float
+  usedLeaves   Float    @default(0.0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model LeaveRequest {
+  id           String   @id @default(uuid())
+  employeeId   String
+  leaveType    String
+  startDate    DateTime
+  endDate      DateTime
+  days         Float
+  reason       String
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  approvedById String?
+  remarks      String?
+  appliedAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  approvedBy User?  @relation(fields: [approvedById], references: [id])
+}

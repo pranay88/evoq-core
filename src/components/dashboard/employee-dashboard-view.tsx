@@ -1,0 +1,220 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Clock,
+  CalendarDays,
+  CalendarCheck,
+  CalendarOff,
+  Briefcase,
+  LogOut,
+  MapPin,
+  CheckCircle2,
+  AlertTriangle
+} from 'lucide-react';
+import { formatDate, formatDateTime } from '@/lib/utils';
+import Link from 'next/link';
+
+interface EmployeeDashboardViewProps {
+  user: any;
+  employee: any;
+  stats: any;
+  monthlyAttendance: any[];
+  leaveBalances: any[];
+  recentLeaves: any[];
+}
+
+export default function EmployeeDashboardView({
+  user,
+  employee,
+  stats,
+  monthlyAttendance,
+  leaveBalances,
+  recentLeaves,
+}: EmployeeDashboardViewProps) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    if (!confirm('Are you sure you want to log out?')) return;
+    
+    // In a real app we'd call the server action, but for kiosks we can redirect to standard logout
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/attendance-portal'; 
+    // Wait, let's just trigger logout Action or redirect to login which clears session?
+    // Actually, calling the server action is best. 
+    // Since we don't have it imported here, let's redirect to `/unauthorized` or `/login`.
+    router.push('/login');
+  };
+
+  // Find today's record to display status
+  const todayRecord = monthlyAttendance.length > 0 && 
+    new Date(monthlyAttendance[0].date).toDateString() === new Date().toDateString()
+      ? monthlyAttendance[0]
+      : null;
+
+  return (
+    <div className="space-y-8 font-sans animate-fade-in">
+      {/* Header Profile Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-card border border-border p-6 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-6">
+          <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary text-2xl font-serif shrink-0">
+            {employee.fullName.charAt(0)}
+          </div>
+          <div>
+            <h1 className="text-3xl font-serif text-foreground">{employee.fullName}</h1>
+            <p className="text-muted-foreground mt-1">
+              {employee.designation} &bull; {employee.department?.name}
+            </p>
+            <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground font-semibold">
+              <span className="flex items-center gap-1"><Briefcase className="w-4 h-4" /> ID: {employee.employeeId}</span>
+              <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {employee.site?.name}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex flex-col gap-3 w-full md:w-auto">
+          {todayRecord ? (
+            <div className="px-5 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] uppercase font-bold tracking-wider">Status Today</p>
+                <p className="font-semibold">{todayRecord.status}</p>
+              </div>
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+          ) : (
+            <div className="px-5 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] uppercase font-bold tracking-wider">Status Today</p>
+                <p className="font-semibold">Not Checked In</p>
+              </div>
+              <Clock className="w-6 h-6" />
+            </div>
+          )}
+          <Link href="/attendance-portal" className="text-xs text-center text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1.5 border border-border bg-secondary/50 py-2 rounded-lg hover:bg-secondary">
+            <LogOut className="w-4 h-4" /> Sign out of Portal
+          </Link>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 select-none">
+        <div className="bg-card border border-border p-5 rounded-xl shadow-sm">
+          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Present This Month</span>
+          <p className="text-3xl font-serif font-bold text-foreground mt-2">{stats.totalPresent} <span className="text-sm font-sans font-normal text-muted-foreground">days</span></p>
+        </div>
+        <div className="bg-card border border-border p-5 rounded-xl shadow-sm">
+          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Hours Logged</span>
+          <p className="text-3xl font-serif font-bold text-primary mt-2">{stats.totalHours} <span className="text-sm font-sans font-normal text-muted-foreground">hrs</span></p>
+        </div>
+        <div className="bg-card border border-border p-5 rounded-xl shadow-sm">
+          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Late Arrivals</span>
+          <p className="text-3xl font-serif font-bold text-rose-500 mt-2">{stats.totalLate} <span className="text-sm font-sans font-normal text-muted-foreground">days</span></p>
+        </div>
+        <div className="bg-card border border-border p-5 rounded-xl shadow-sm">
+          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Available Leave</span>
+          <p className="text-3xl font-serif font-bold text-foreground mt-2">
+            {leaveBalances.reduce((acc, curr) => acc + (curr.totalLeaves - curr.usedLeaves), 0)} <span className="text-sm font-sans font-normal text-muted-foreground">days</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Col: Attendance Log */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-border/60 flex justify-between items-center bg-secondary/20">
+              <h3 className="font-serif font-bold text-lg flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-primary" /> Monthly Log
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-[10px] uppercase text-muted-foreground bg-secondary/30">
+                  <tr>
+                    <th className="px-5 py-3 font-semibold">Date</th>
+                    <th className="px-5 py-3 font-semibold">Status</th>
+                    <th className="px-5 py-3 font-semibold">Check In</th>
+                    <th className="px-5 py-3 font-semibold">Check Out</th>
+                    <th className="px-5 py-3 font-semibold">Hours</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {monthlyAttendance.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground italic">
+                        No attendance records found for this month.
+                      </td>
+                    </tr>
+                  ) : (
+                    monthlyAttendance.map((log) => (
+                      <tr key={log.id} className="hover:bg-secondary/20 transition-colors">
+                        <td className="px-5 py-3 font-medium">
+                          {new Date(log.date).toLocaleDateString([], { month: 'short', day: 'numeric', weekday: 'short' })}
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border ${
+                            log.status === 'Present' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                            log.status.includes('Leave') ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
+                            'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                          }`}>
+                            {log.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 font-mono text-xs text-muted-foreground">
+                          {log.checkIn ? new Date(log.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                          {log.lateArrival && <AlertTriangle className="w-3 h-3 text-amber-500 inline ml-1" />}
+                        </td>
+                        <td className="px-5 py-3 font-mono text-xs text-muted-foreground">
+                          {log.checkOut ? new Date(log.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                        </td>
+                        <td className="px-5 py-3 font-semibold text-primary/80">
+                          {log.workingHours ? `${log.workingHours}h` : '-'}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Col: Leaves */}
+        <div className="space-y-6">
+          <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
+            <h3 className="font-serif font-bold text-lg mb-4 flex items-center gap-2 pb-2 border-b border-border/60">
+              <CalendarCheck className="w-5 h-5 text-primary" /> Leave Balances
+            </h3>
+            
+            <div className="space-y-4">
+              {leaveBalances.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">No leave balances configured.</p>
+              ) : (
+                leaveBalances.map((bal) => {
+                  const remaining = bal.totalLeaves - bal.usedLeaves;
+                  const percentage = (bal.usedLeaves / bal.totalLeaves) * 100;
+                  return (
+                    <div key={bal.id} className="space-y-2">
+                      <div className="flex justify-between text-xs font-semibold">
+                        <span>{bal.leaveType}</span>
+                        <span>{remaining} left <span className="text-muted-foreground font-normal">of {bal.totalLeaves}</span></span>
+                      </div>
+                      <div className="w-full bg-secondary/50 rounded-full h-1.5 overflow-hidden">
+                        <div 
+                          className={`h-1.5 rounded-full ${remaining < 2 ? 'bg-rose-500' : 'bg-primary'}`} 
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
