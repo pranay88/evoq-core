@@ -5,18 +5,46 @@ import crypto from 'crypto';
 import { db } from '@/lib/db';
 import { setSession, clearSession, getSession } from '@/lib/session';
 import { logAudit } from '@/lib/audit';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-function hashPassword(password: string): string {
+// Legacy hashing algorithm
+function hashPasswordLegacy(password: string): string {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
+// Secure Scrypt hashing algorithm
+function hashPasswordScrypt(password: string): string {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derivedKey = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${derivedKey}`;
+}
+
+// Verify password with fallback for legacy hashes
+function verifyPassword(password: string, storedHash: string): { isValid: boolean; needsMigration: boolean } {
+  if (storedHash.includes(':')) {
+    // It's a scrypt hash
+    const [salt, key] = storedHash.split(':');
+    const keyBuffer = Buffer.from(key, 'hex');
+    const derivedKey = crypto.scryptSync(password, salt, 64);
+    
+    // Protect against timing attacks
+    const isValid = crypto.timingSafeEqual(keyBuffer, derivedKey);
+    return { isValid, needsMigration: false };
+  } else {
+    // Legacy sha256 hash
+    const isValid = storedHash === hashPasswordLegacy(password);
+    return { isValid, needsMigration: isValid }; // If valid, migrate!
+  }
+}
+
 export async function loginAction(prevState: any, formData: FormData) {
-  const email = formData.get('email') as string;
+  const rawEmail = formData.get('email') as string || '';
+  const email = sanitizeHtml(rawEmail);
   const password = formData.get('password') as string;
 
   // Validate fields
@@ -55,57 +83,54 @@ export async function loginAction(prevState: any, formData: FormData) {
 
     // Check account status
     if (user.status === 'INACTIVE') {
-      await db.loginAttempt.create({
-        data: {
-          email,
-          status: 'FAILED',
-        },
-      });
-      return {
-        success: false,
-        message: 'This account has been deactivated. Please contact HR.',
-      };
+      await db.loginAttempt.create({ data: { email, status: 'FAILED' } });
+      return { success: false, message: 'This account has been deactivated. Please contact HR.' };
     }
 
-    const hashedPassword = hashPassword(password);
-    if (user.passwordHash !== hashedPassword) {
+    if (user.status === 'LOCKED' || user.failedLoginAttempts >= 5) {
+      await db.loginAttempt.create({ data: { email, status: 'FAILED' } });
+      return { success: false, message: 'Account locked due to too many failed attempts. Please contact HR.' };
+    }
+
+    const { isValid, needsMigration } = verifyPassword(password, user.passwordHash);
+
+    if (!isValid) {
       // Increment failed login attempts
       const updatedFailedAttempts = user.failedLoginAttempts + 1;
       
+      const updateData: any = { failedLoginAttempts: updatedFailedAttempts };
+      if (updatedFailedAttempts >= 5) {
+        updateData.status = 'LOCKED';
+      }
+      
       await db.user.update({
         where: { id: user.id },
-        data: {
-          failedLoginAttempts: updatedFailedAttempts,
-        },
+        data: updateData,
       });
 
-      await db.loginAttempt.create({
-        data: {
-          email,
-          status: 'FAILED',
-        },
-      });
+      await db.loginAttempt.create({ data: { email, status: 'FAILED' } });
 
       if (updatedFailedAttempts >= 5) {
-        return {
-          success: false,
-          message: 'Invalid credentials. Too many failed attempts. Account may be locked.',
-        };
+        return { success: false, message: 'Account locked due to too many failed attempts. Please contact HR.' };
       }
 
-      return {
-        success: false,
-        message: 'Invalid email or password.',
-      };
+      return { success: false, message: 'Invalid email or password.' };
     }
 
     // Success! Reset failed attempts and update last login
+    const updateData: any = {
+      failedLoginAttempts: 0,
+      lastLogin: new Date(),
+    };
+    
+    // Migrate to Scrypt if they were on legacy hash
+    if (needsMigration) {
+      updateData.passwordHash = hashPasswordScrypt(password);
+    }
+
     await db.user.update({
       where: { id: user.id },
-      data: {
-        failedLoginAttempts: 0,
-        lastLogin: new Date(),
-      },
+      data: updateData,
     });
 
     // Create session payload
@@ -159,7 +184,8 @@ export async function logoutAction(userId: string, userName: string, userRole: s
   }
 }
 
-export async function resetPasswordAction(email: string, password: string) {
+export async function resetPasswordAction(rawEmail: string, password: string) {
+  const email = sanitizeHtml(rawEmail);
   const validatedFields = loginSchema.safeParse({ email, password });
   if (!validatedFields.success) {
     return {
@@ -178,12 +204,13 @@ export async function resetPasswordAction(email: string, password: string) {
       };
     }
 
-    const hashedPassword = hashPassword(password);
+    const hashedPassword = hashPasswordScrypt(password);
     await db.user.update({
       where: { id: user.id },
       data: {
         passwordHash: hashedPassword,
         failedLoginAttempts: 0,
+        status: 'ACTIVE', // Unlocks the account if it was locked!
       },
     });
 

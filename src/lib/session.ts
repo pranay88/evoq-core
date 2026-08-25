@@ -16,36 +16,43 @@ interface SessionPayload {
   departmentId: string | null;
 }
 
-// Signs a payload with HMAC-SHA256 and base64 encodes it
+// Ensure the secret is exactly 32 bytes for AES-256
+const ENCRYPTION_KEY = crypto.createHash('sha256').update(SESSION_SECRET).digest();
+const ALGORITHM = 'aes-256-gcm';
+
+// Encrypts payload with AES-256-GCM
 export function encryptSession(payload: SessionPayload): string {
-  const data = JSON.stringify(payload);
-  const dataBase64 = Buffer.from(data).toString('base64');
-  const hmac = crypto.createHmac('sha256', SESSION_SECRET);
-  hmac.update(dataBase64);
-  const signature = hmac.digest('hex');
-  return `${dataBase64}.${signature}`;
+  const iv = crypto.randomBytes(12); // GCM standard IV size
+  const cipher = crypto.createCipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
+  
+  let encrypted = cipher.update(JSON.stringify(payload), 'utf8', 'base64');
+  encrypted += cipher.final('base64');
+  
+  const authTag = cipher.getAuthTag().toString('base64');
+  
+  // Format: iv.authTag.encryptedData
+  return `${iv.toString('base64')}.${authTag}.${encrypted}`;
 }
 
-// Decrypts and verifies the token signature
+// Decrypts AES-256-GCM encrypted payload
 export function decryptSession(token: string): SessionPayload | null {
   try {
     const parts = token.split('.');
-    if (parts.length !== 2) return null;
+    if (parts.length !== 3) return null;
     
-    const [dataBase64, signature] = parts;
-    const hmac = crypto.createHmac('sha256', SESSION_SECRET);
-    hmac.update(dataBase64);
-    const expectedSignature = hmac.digest('hex');
+    const [ivBase64, authTagBase64, encrypted] = parts;
     
-    if (signature !== expectedSignature) {
-      console.warn('Session signature mismatch!');
-      return null;
-    }
+    const iv = Buffer.from(ivBase64, 'base64');
+    const authTag = Buffer.from(authTagBase64, 'base64');
     
-    const decoded = Buffer.from(dataBase64, 'base64').toString('utf-8');
-    return JSON.parse(decoded) as SessionPayload;
-  } catch (error) {
-    console.error('Session decryption error:', error);
+    const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
+    decipher.setAuthTag(authTag);
+    
+    let decrypted = decipher.update(encrypted, 'base64', 'utf8');
+    decrypted += decipher.final('utf8');
+    
+    return JSON.parse(decrypted) as SessionPayload;
+  } catch (err) {
     return null;
   }
 }

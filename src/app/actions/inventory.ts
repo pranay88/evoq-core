@@ -20,6 +20,8 @@ const itemSchema = z.object({
   remarks: z.string().optional(),
 });
 
+import { sanitizeHtml } from '@/lib/sanitize';
+
 // Create new inventory item
 export async function createInventoryItemAction(prevState: any, formData: FormData) {
   const session = await getSession();
@@ -29,7 +31,7 @@ export async function createInventoryItemAction(prevState: any, formData: FormDa
 
   const rawData: any = {};
   formData.forEach((value, key) => {
-    rawData[key] = value;
+    rawData[key] = typeof value === 'string' ? sanitizeHtml(value) : value;
   });
 
   const validatedFields = itemSchema.safeParse(rawData);
@@ -348,13 +350,15 @@ export async function createCategoryAction(name: string) {
     return { success: false, message: 'Unauthorized. Only Admin or HR can manage categories.' };
   }
 
-  if (!name || name.trim() === '') {
+  const sanitizedName = sanitizeHtml(name);
+
+  if (!sanitizedName || sanitizedName === '') {
     return { success: false, message: 'Category name is required.' };
   }
 
   try {
     const existing = await db.inventoryCategory.findUnique({
-      where: { name: name.trim() },
+      where: { name: sanitizedName },
     });
 
     if (existing) {
@@ -362,7 +366,7 @@ export async function createCategoryAction(name: string) {
     }
 
     await db.inventoryCategory.create({
-      data: { name: name.trim() },
+      data: { name: sanitizedName },
     });
 
     revalidatePath('/admin/inventory');

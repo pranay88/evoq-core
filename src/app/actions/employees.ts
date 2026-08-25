@@ -1,5 +1,6 @@
 'use server';
 
+import { sanitizeHtml } from '@/lib/sanitize';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { logAudit } from '@/lib/audit';
@@ -50,10 +51,10 @@ export async function createEmployeeAction(prevState: any, formData: FormData) {
     return { success: false, message: 'Unauthorized. Only HR can add employees.' };
   }
 
-  // Parse raw form values
+  // Parse and sanitize raw form values
   const rawData: any = {};
   formData.forEach((value, key) => {
-    rawData[key] = value;
+    rawData[key] = typeof value === 'string' ? sanitizeHtml(value) : value;
   });
 
   // Validate fields
@@ -160,10 +161,10 @@ export async function updateEmployeeAction(id: string, prevState: any, formData:
     return { success: false, message: 'Unauthorized. Only HR can update employees.' };
   }
 
-  // Parse raw form values
+  // Parse and sanitize raw form values
   const rawData: any = {};
   formData.forEach((value, key) => {
-    rawData[key] = value;
+    rawData[key] = typeof value === 'string' ? sanitizeHtml(value) : value;
   });
 
   const validatedFields = employeeSchema.safeParse(rawData);
