@@ -67,15 +67,17 @@ export default function FrontDeskDashboardView({
   });
 
   // Reset check-in modal on success
-  if (state.success && checkInOpen) {
-    setCheckInOpen(false);
-    setPhone('');
-    setName('');
-    setCompany('');
-    setLookupMessage('');
-    state.success = false; // reset
-    router.refresh();
-  }
+  useEffect(() => {
+    if (state.success && checkInOpen) {
+      setCheckInOpen(false);
+      setPhone('');
+      setName('');
+      setCompany('');
+      setLookupMessage('');
+      state.success = false; // reset
+      router.refresh();
+    }
+  }, [state.success, checkInOpen, router, state]);
 
   // Trigger phone lookup on 10 digit entries
   useEffect(() => {
