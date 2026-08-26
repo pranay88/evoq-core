@@ -15,7 +15,7 @@ async function main() {
     where: { code: 'EVOQ-HQ' },
     update: {},
     create: {
-      name: 'EVOQ Headquarters',
+      name: 'Evoq Headquarters 80',
       code: 'EVOQ-HQ',
       address: '101 Prestige Tower, MG Road, Bangalore, KA, 560001',
       phone: '+91 80 4567 8901',
@@ -28,7 +28,7 @@ async function main() {
     where: { code: 'EVOQ-ON' },
     update: {},
     create: {
-      name: 'EVOQ One North',
+      name: 'Evoq Antalia 66',
       code: 'EVOQ-ON',
       address: 'Plot 12, Tech Park, Sector 62, Noida, UP, 201301',
       phone: '+91 120 456 7892',
@@ -41,7 +41,7 @@ async function main() {
     where: { code: 'EVOQ-HZ' },
     update: {},
     create: {
-      name: 'EVOQ Horizon',
+      name: 'Evoq select 102',
       code: 'EVOQ-HZ',
       address: 'Floor 5, Sky Rise, Gachibowli, Hyderabad, TS, 500032',
       phone: '+91 40 4567 8903',
@@ -54,7 +54,7 @@ async function main() {
     where: { code: 'EVOQ-VT' },
     update: {},
     create: {
-      name: 'EVOQ Vista',
+      name: 'Evoq 82',
       code: 'EVOQ-VT',
       address: 'Building B, Ocean View, Andheri West, Mumbai, MH, 400053',
       phone: '+91 22 4567 8904',
