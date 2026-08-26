@@ -3,7 +3,18 @@ import type { NextRequest } from 'next/server';
 
 const SESSION_COOKIE_NAME = 'evoq_core_session';
 
-export function middleware(request: NextRequest) {
+const SESSION_SECRET = process.env.AUTH_SECRET || 'local_development_secret_key_evoq_core_12345';
+
+function base64ToUint8Array(base64: string) {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Bypass authentication checks for static assets (images, logos)
@@ -31,15 +42,31 @@ export function middleware(request: NextRequest) {
   // 2. If token exists, inspect user's role and restrict access
   if (token) {
     try {
-      // Token structure is: base64Data.signature
-      const base64Data = token.split('.')[0];
-      if (!base64Data) {
-        throw new Error('Invalid token format');
-      }
-
-      // Decode base64 in edge-compatible way using atob
-      const jsonString = atob(base64Data);
-      const user = JSON.parse(jsonString);
+      const parts = token.split('.');
+      if (parts.length !== 3) throw new Error('Invalid token');
+      
+      const [ivBase64, authTagBase64, encryptedBase64] = parts;
+      
+      const iv = base64ToUint8Array(ivBase64);
+      const authTag = base64ToUint8Array(authTagBase64);
+      const encrypted = base64ToUint8Array(encryptedBase64);
+      
+      const ciphertext = new Uint8Array(encrypted.length + authTag.length);
+      ciphertext.set(encrypted);
+      ciphertext.set(authTag, encrypted.length);
+      
+      const encoder = new TextEncoder();
+      const secretBuffer = encoder.encode(SESSION_SECRET);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', secretBuffer);
+      const cryptoKey = await crypto.subtle.importKey('raw', hashBuffer, { name: 'AES-GCM' }, false, ['decrypt']);
+      
+      const decryptedBuffer = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        cryptoKey,
+        ciphertext
+      );
+      
+      const user = JSON.parse(new TextDecoder().decode(decryptedBuffer));
 
       // Check if user account is active
       if (user.status === 'INACTIVE') {
