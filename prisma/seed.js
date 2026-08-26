@@ -17,7 +17,7 @@ async function main() {
     create: {
       name: 'Evoq Headquarters 80',
       code: 'EVOQ-HQ',
-      address: '101 Prestige Tower, MG Road, Bangalore, KA, 560001',
+      address: '101 Prestige Tower, Sector 62, Mohali, PB, 160062',
       phone: '+91 80 4567 8901',
       email: 'hq@houseofevoq.com',
       status: 'ACTIVE',
@@ -30,7 +30,7 @@ async function main() {
     create: {
       name: 'Evoq Antalia 66',
       code: 'EVOQ-ON',
-      address: 'Plot 12, Tech Park, Sector 62, Noida, UP, 201301',
+      address: 'Plot 12, Tech Park, Sector 66, Mohali, PB, 160062',
       phone: '+91 120 456 7892',
       email: 'noida@houseofevoq.com',
       status: 'ACTIVE',
@@ -43,7 +43,7 @@ async function main() {
     create: {
       name: 'Evoq select 102',
       code: 'EVOQ-HZ',
-      address: 'Floor 5, Sky Rise, Gachibowli, Hyderabad, TS, 500032',
+      address: 'Floor 5, Sky Rise, Sector 74, Mohali, PB, 160071',
       phone: '+91 40 4567 8903',
       email: 'hyd@houseofevoq.com',
       status: 'ACTIVE',
@@ -56,7 +56,7 @@ async function main() {
     create: {
       name: 'Evoq 82',
       code: 'EVOQ-VT',
-      address: 'Building B, Ocean View, Andheri West, Mumbai, MH, 400053',
+      address: 'Building B, Industrial Area, Phase 8, Mohali, PB, 160071',
       phone: '+91 22 4567 8904',
       email: 'mumbai@houseofevoq.com',
       status: 'ACTIVE',
