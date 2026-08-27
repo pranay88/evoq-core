@@ -7,7 +7,9 @@ import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
 
 function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex');
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derivedKey = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${derivedKey}`;
 }
 
 // Create user account

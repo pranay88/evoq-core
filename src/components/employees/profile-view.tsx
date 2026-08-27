@@ -63,6 +63,7 @@ export default function ProfileView({ employee, auditLogs, userRole }: ProfileVi
     { id: 'assets', name: 'Issued Assets', icon: HardHat },
     { id: 'emergency', name: 'Emergency Contact', icon: Bell },
     { id: 'bank', name: 'Bank & Statutory', icon: Landmark, secure: true },
+    { id: 'payroll', name: 'Payroll & Leaves', icon: Landmark, secure: true },
     { id: 'history', name: 'Activity History', icon: History },
   ];
 
@@ -778,6 +779,10 @@ export default function ProfileView({ employee, auditLogs, userRole }: ProfileVi
           </div>
         )}
 
+        {activeTab === 'payroll' && isHr && (
+          <PayrollTab employee={employee} />
+        )}
+
         {/* Tab 8: Activity History */}
         {activeTab === 'history' && (
           <div className="bg-card border border-border rounded-lg p-6 shadow-sm space-y-6">
@@ -811,6 +816,78 @@ export default function ProfileView({ employee, auditLogs, userRole }: ProfileVi
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function PayrollTab({ employee }: { employee: any }) {
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [payrollData, setPayrollData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const calculate = async () => {
+    setLoading(true);
+    setError('');
+    const { calculatePayrollAction } = await import('@/app/actions/payroll');
+    const res = await calculatePayrollAction(employee.id, month, year);
+    if (res.success) {
+      setPayrollData(res.data);
+    } else {
+      setError(res.message);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="bg-card border border-border rounded-lg p-6 shadow-sm space-y-6">
+      <div className="flex items-center gap-2 pb-2 border-b border-border/60">
+        <Landmark className="w-5 h-5 text-primary" />
+        <h2 className="text-lg font-serif font-bold text-foreground">Payroll & Salary Calculation</h2>
+      </div>
+
+      <div className="flex items-end gap-4">
+        <div>
+          <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Month</label>
+          <select value={month} onChange={e => setMonth(Number(e.target.value))} className="px-3 py-1.5 bg-background border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+            {Array.from({length: 12}, (_, i) => i + 1).map(m => (
+              <option key={m} value={m}>{new Date(2000, m - 1).toLocaleString('default', { month: 'long' })}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Year</label>
+          <input type="number" value={year} onChange={e => setYear(Number(e.target.value))} className="px-3 py-1.5 bg-background border border-border rounded text-sm w-24 focus:outline-none focus:ring-1 focus:ring-primary" />
+        </div>
+        <button onClick={calculate} disabled={loading} className="px-4 py-1.5 bg-primary hover:bg-primary/95 text-primary-foreground text-sm font-semibold rounded shadow-sm transition-colors flex items-center gap-2">
+          {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+          Calculate Salary
+        </button>
+      </div>
+
+      {error && <div className="p-3 bg-rose-50 text-rose-800 text-sm rounded border border-rose-200">{error}</div>}
+
+      {payrollData && (
+        <div className="p-4 bg-secondary/20 border border-border rounded grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm mt-4">
+          <div>
+            <span className="block text-xs text-muted-foreground uppercase">Base Salary</span>
+            <span className="font-semibold text-lg">?{payrollData.baseSalary}</span>
+          </div>
+          <div>
+            <span className="block text-xs text-muted-foreground uppercase">Working Days (Month)</span>
+            <span className="font-semibold text-lg">{payrollData.totalDaysInMonth}</span>
+          </div>
+          <div>
+            <span className="block text-xs text-muted-foreground uppercase">Days Present</span>
+            <span className="font-semibold text-lg">{payrollData.daysPresent}</span>
+          </div>
+          <div className="bg-primary/5 p-2 rounded border border-primary/20 -m-2">
+            <span className="block text-xs text-primary font-semibold uppercase">Calculated Payout</span>
+            <span className="font-bold text-xl text-primary">?{payrollData.calculatedSalary}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

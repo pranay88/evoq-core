@@ -22,7 +22,8 @@ import {
   ShieldCheck,
   Users2,
   Bell,
-  Trophy
+  Trophy,
+  CalendarOff
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -54,6 +55,7 @@ export default function Sidebar({ user, isCollapsed, setIsCollapsed }: SidebarPr
         { name: 'Onboarding Links', href: '/hr/invitations', icon: UserCheck },
         { name: 'Submissions', href: '/hr/submissions', icon: ClipboardList },
         { name: 'Attendance', href: '/hr/attendance', icon: Clock },
+        { name: 'Leave Requests', href: '/hr/leaves', icon: CalendarOff },
         { name: 'Calendar & Festivals', href: '/hr/calendar', icon: Calendar },
         { name: 'Reminders', href: '/hr/reminders', icon: Bell },
         { name: 'Leaderboard', href: '/hr/leaderboard', icon: Trophy },

@@ -11,7 +11,8 @@ import {
   LogOut,
   MapPin,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 import { formatDate, formatDateTime } from '@/lib/utils';
 import Link from 'next/link';
@@ -34,6 +35,41 @@ export default function EmployeeDashboardView({
   recentLeaves,
 }: EmployeeDashboardViewProps) {
   const router = useRouter();
+
+  const [leaveModalOpen, setLeaveModalOpen] = useState(false);
+  const [leaveType, setLeaveType] = useState('CASUAL');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [leaveReason, setLeaveReason] = useState('');
+  const [leaveLoading, setLeaveLoading] = useState(false);
+  const [leaveError, setLeaveError] = useState('');
+  const [leaveSuccess, setLeaveSuccess] = useState('');
+
+  const handleApplyLeave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLeaveLoading(true);
+    setLeaveError('');
+    setLeaveSuccess('');
+
+    const { applyLeaveAction } = await import('@/app/actions/leaves');
+    const res = await applyLeaveAction(employee.id, leaveType, startDate, endDate, leaveReason);
+    
+    if (res.success) {
+      setLeaveSuccess(res.message);
+      setTimeout(() => {
+        setLeaveModalOpen(false);
+        setLeaveSuccess('');
+        setLeaveType('CASUAL');
+        setStartDate('');
+        setEndDate('');
+        setLeaveReason('');
+        router.refresh();
+      }, 2000);
+    } else {
+      setLeaveError(res.message);
+    }
+    setLeaveLoading(false);
+  };
 
   const handleLogout = async () => {
     if (!confirm('Are you sure you want to log out?')) return;
@@ -92,6 +128,9 @@ export default function EmployeeDashboardView({
               <Clock className="w-6 h-6" />
             </div>
           )}
+          <button onClick={() => setLeaveModalOpen(true)} className="text-xs text-center text-primary-foreground bg-primary hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 border border-primary py-2 rounded-lg">
+            <CalendarCheck className="w-4 h-4" /> Apply for Leave
+          </button>
           <Link href="/attendance-portal" className="text-xs text-center text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1.5 border border-border bg-secondary/50 py-2 rounded-lg hover:bg-secondary">
             <LogOut className="w-4 h-4" /> Sign out of Portal
           </Link>
@@ -215,6 +254,53 @@ export default function EmployeeDashboardView({
           </div>
         </div>
       </div>
+
+      {leaveModalOpen && (
+        <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card w-full max-w-md border border-border rounded-xl shadow-lg p-6 animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-serif font-bold text-foreground mb-4">Apply for Leave</h3>
+            
+            {leaveSuccess && <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 text-sm rounded border border-emerald-200">{leaveSuccess}</div>}
+            {leaveError && <div className="mb-4 p-3 bg-rose-50 text-rose-700 text-sm rounded border border-rose-200">{leaveError}</div>}
+
+            <form onSubmit={handleApplyLeave} className="space-y-4 font-sans text-sm">
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Leave Type *</label>
+                <select value={leaveType} onChange={e => setLeaveType(e.target.value)} required className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                  <option value="CASUAL">Casual Leave</option>
+                  <option value="SICK">Sick Leave</option>
+                  <option value="PRIVILEGE">Privilege / Earned Leave</option>
+                  <option value="MATERNITY">Maternity / Paternity Leave</option>
+                  <option value="UNPAID">Leave Without Pay (LWP)</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Start Date *</label>
+                  <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required min={new Date().toISOString().split('T')[0]} className="w-full px-3 py-2 bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">End Date *</label>
+                  <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} required min={startDate || new Date().toISOString().split('T')[0]} className="w-full px-3 py-2 bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Reason *</label>
+                <textarea value={leaveReason} onChange={e => setLeaveReason(e.target.value)} required rows={3} placeholder="Please provide a reason for your leave..." className="w-full px-3 py-2 bg-background border border-border rounded resize-none focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3 border-t border-border/50">
+                <button type="button" onClick={() => setLeaveModalOpen(false)} className="px-4 py-2 hover:bg-secondary text-foreground rounded font-semibold transition-colors">Cancel</button>
+                <button type="submit" disabled={leaveLoading} className="px-4 py-2 bg-primary hover:bg-primary/95 text-primary-foreground rounded font-semibold transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50">
+                  {leaveLoading && <Loader2 className="w-4 h-4 animate-spin" />} Submit Application
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

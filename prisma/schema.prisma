@@ -96,6 +96,7 @@ model Employee {
   confirmationDate   DateTime?
   officialEmail      String?
   officialPhone      String?
+    baseSalary         Float   @default(0)
   shift              String?
   noticePeriodDays   Int     @default(30)
   employmentStatus   String  @default("ACTIVE") // ACTIVE, PROBATION, CONFIRMED, LEAVE, NOTICE, RESIGNED, TERMINATED, INACTIVE
@@ -469,3 +470,4 @@ model LeaveRequest {
   employee Employee @relation(fields: [employeeId], references: [id])
   approvedBy User?  @relation(fields: [approvedById], references: [id])
 }
+

@@ -43,6 +43,7 @@ export default function SubmissionsList({ submissions, departments, sites }: Sub
   const [designation, setDesignation] = useState('');
   const [joiningDate, setJoiningDate] = useState('');
   const [empType, setEmpType] = useState('FULL_TIME');
+  const [baseSalary, setBaseSalary] = useState('');
   const [approvalError, setApprovalError] = useState('');
 
   // Request Correction submit handler
@@ -80,7 +81,8 @@ export default function SubmissionsList({ submissions, departments, sites }: Sub
         siteId,
         designation,
         joiningDate,
-        empType
+        empType,
+        baseSalary ? parseFloat(baseSalary) : 0
       );
 
       if (res.success) {
@@ -308,6 +310,22 @@ export default function SubmissionsList({ submissions, departments, sites }: Sub
                       onChange={(e) => setJoiningDate(e.target.value)}
                       className="w-full px-2.5 py-1.5 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Base Salary (INR) *</label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={baseSalary}
+                      onChange={(e) => setBaseSalary(e.target.value)}
+                      placeholder={selectedSub?.data?.baseSalary || "Enter salary"}
+                      className="w-full px-2.5 py-1.5 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    {selectedSub?.data?.baseSalary && (
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Candidate requested: ₹{selectedSub.data.baseSalary}</p>
+                    )}
                   </div>
 
                   <div className="sm:col-span-2 flex justify-end pt-2">

@@ -222,7 +222,8 @@ export async function approveSubmissionAction(
   siteId: string,
   designation: string,
   joiningDateVal: string,
-  employmentType: string
+  employmentType: string,
+  baseSalary: number
 ) {
   const session = await getSession();
   if (!session || session.role !== 'HR') {
@@ -270,6 +271,7 @@ export async function approveSubmissionAction(
           joiningDate: new Date(joiningDateVal),
           employmentType,
           employmentStatus: 'ACTIVE',
+          baseSalary,
           
           bankName: data.bankName || null,
           bankAccountHolderName: data.bankAccountHolderName || null,

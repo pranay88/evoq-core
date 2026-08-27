@@ -16,6 +16,25 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
   const [panFiles, setPanFiles] = useState<File[]>([]);
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [academicFiles, setAcademicFiles] = useState<File[]>([]);
+  const [savedData, setSavedData] = useState<Record<string, string>>({});
+  
+  useEffect(() => {
+    const data = localStorage.getItem("onboard_" + token);
+    if (data) {
+      try {
+        setSavedData(JSON.parse(data));
+      } catch(e) {}
+    }
+  }, [token]);
+
+  const handleFormChange = (e: React.FormEvent<HTMLFormElement>) => {
+    const formData = new FormData(e.currentTarget);
+    const data: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      if (typeof value === "string") data[key] = value;
+    });
+    localStorage.setItem("onboard_" + token, JSON.stringify(data));
+  };
 
   const [state, formAction, isPending] = useActionState(
     async (prevState: any, formData: FormData) => {
@@ -62,7 +81,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
           </p>
         </div>
       ) : (
-        <form action={formAction} className="p-6 md:p-8 space-y-8">
+        <form action={formAction} onChange={handleFormChange} className="p-6 md:p-8 space-y-8">
           {state.message && (
             <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-md text-xs">
               {state.message}
@@ -82,6 +101,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Full Name *</label>
                   <input
                     name="fullName"
+                    defaultValue={savedData["fullName"] || ""}
                     type="text"
                     required
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
@@ -93,6 +113,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Date of Birth *</label>
                   <input
                     name="dateOfBirth"
+                    defaultValue={savedData["dateOfBirth"] || ""}
                     type="date"
                     required
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
@@ -103,6 +124,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Gender *</label>
                   <select
                     name="gender"
+                    defaultValue={savedData["gender"] || ""}
                     required
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
@@ -117,6 +139,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Blood Group</label>
                   <select
                     name="bloodGroup"
+                    defaultValue={savedData["bloodGroup"] || ""}
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="">Unknown</option>
@@ -129,6 +152,19 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                     <option value="AB+">AB+</option>
                     <option value="AB-">AB-</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Expected Salary (INR) *</label>
+                  <input
+                    name="baseSalary"
+                    defaultValue={savedData["baseSalary"] || ""}
+                    type="number"
+                    min="0"
+                    required
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="Enter expected salary"
+                  />
                 </div>
 
                 <div>
@@ -149,7 +185,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                     name="mobileNumber"
                     type="tel"
                     required
-                    defaultValue={defaultPhone || ''}
+                    defaultValue={savedData["mobileNumber"] || defaultPhone || ''}
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     placeholder="+91 98765 43210"
                   />
@@ -171,6 +207,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Current Address *</label>
                   <textarea
                     name="currentAddress"
+                    defaultValue={savedData["currentAddress"] || ""}
                     required
                     rows={3}
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
@@ -182,6 +219,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Permanent Address *</label>
                   <textarea
                     name="permanentAddress"
+                    defaultValue={savedData["permanentAddress"] || ""}
                     required
                     rows={3}
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
@@ -243,6 +281,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Bank Name *</label>
                   <input
                     name="bankName"
+                    defaultValue={savedData["bankName"] || ""}
                     type="text"
                     required
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
@@ -254,6 +293,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Account Holder Name *</label>
                   <input
                     name="bankAccountHolderName"
+                    defaultValue={savedData["bankAccountHolderName"] || ""}
                     type="text"
                     required
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
@@ -265,6 +305,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Account Number *</label>
                   <input
                     name="bankAccountNumber"
+                    defaultValue={savedData["bankAccountNumber"] || ""}
                     type="text"
                     required
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
@@ -276,6 +317,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">IFSC Code *</label>
                   <input
                     name="bankIfscCode"
+                    defaultValue={savedData["bankIfscCode"] || ""}
                     type="text"
                     required
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
@@ -287,6 +329,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">PAN Card Number *</label>
                   <input
                     name="panNumber"
+                    defaultValue={savedData["panNumber"] || ""}
                     type="text"
                     required
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
@@ -298,6 +341,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Aadhaar Card Number *</label>
                   <input
                     name="aadhaarNumber"
+                    defaultValue={savedData["aadhaarNumber"] || ""}
                     type="text"
                     required
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
@@ -311,9 +355,14 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
           {/* STEP 4: Document Uploads & Acknowledgement */}
           {step === 4 && (
             <div className="space-y-6">
-              <div className="flex items-center gap-2.5 pb-2 border-b border-border/60">
-                <FileUp className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-serif font-bold text-foreground">File Uploads</h3>
+              <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                <div className="flex items-center gap-2.5">
+                  <FileUp className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-serif font-bold text-foreground">File Uploads</h3>
+                </div>
+                <span className="text-xs font-semibold bg-rose-100 text-rose-800 px-2.5 py-1 rounded-md border border-rose-200">
+                  ?? Max total size limit: 4.5 MB
+                </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

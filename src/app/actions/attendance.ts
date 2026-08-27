@@ -324,7 +324,7 @@ export async function markPortalAttendanceAction(emailOrId: string, password: st
       return { success: false, message: 'No portal login account associated with this employee. Contact HR.' };
     }
 
-        // Verify Password Hash (supports both scrypt and legacy sha256)
+    // Verify Password Hash (supports both scrypt and legacy sha256)
     const crypto = await import('crypto');
     const storedHash = user.passwordHash;
     let isValid = false;
@@ -341,6 +341,10 @@ export async function markPortalAttendanceAction(emailOrId: string, password: st
 
     if (!isValid) {
       return { success: false, message: 'Invalid credentials. Password incorrect.' };
+    }
+
+    if (user.status === 'INACTIVE') {
+      return { success: false, message: 'This account has been deactivated. Contact HR.' };
     }
 
     // 3. Find today's log for the employee
