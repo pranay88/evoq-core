@@ -347,7 +347,46 @@ export async function markPortalAttendanceAction(emailOrId: string, password: st
       return { success: false, message: 'This account has been deactivated. Contact HR.' };
     }
 
-    // 3. Find today's log for the employee
+    // Establish session for Dashboard access
+    await setSession({
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      siteId: user.siteId,
+      siteCode: user.siteId || null,
+      siteName: null,
+      departmentId: user.departmentId,
+    });
+
+    return {
+      success: true,
+      type: 'LOGGED_IN',
+      name: employee.fullName,
+      time: new Date().toLocaleTimeString(),
+      message: 'Successfully authenticated.',
+    };
+  } catch (error: any) {
+    console.error('Portal attendance marker error:', error);
+    return { success: false, message: error.message || 'Server error logging attendance.' };
+  }
+}
+
+export async function logEmployeeAttendanceAction(type: 'CHECK_IN' | 'CHECK_OUT') {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== 'EMPLOYEE') {
+      return { success: false, message: 'Unauthorized. Only Employees can log attendance.' };
+    }
+
+    const employee = await db.employee.findFirst({
+      where: { personalEmail: session.email }
+    });
+
+    if (!employee) {
+      return { success: false, message: 'Employee profile not found.' };
+    }
+
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
@@ -355,18 +394,17 @@ export async function markPortalAttendanceAction(emailOrId: string, password: st
     const existing = await db.attendance.findFirst({
       where: {
         employeeId: employee.id,
-        date: {
-          gte: startOfDay,
-          lte: endOfDay,
-        },
+        date: { gte: startOfDay, lte: endOfDay },
       },
     });
 
-    if (!existing) {
-      // Record Check-in (Entry Done)
-      const now = new Date();
+    const now = new Date();
+
+    if (type === 'CHECK_IN') {
+      if (existing) {
+        return { success: false, message: 'Already checked in today.' };
+      }
       
-      // check if late arrival (after 09:00:59 AM)
       const standardTime = new Date(now);
       standardTime.setHours(9, 0, 59, 999);
       const isLate = now > standardTime;
@@ -379,107 +417,45 @@ export async function markPortalAttendanceAction(emailOrId: string, password: st
           checkIn: now,
           lateArrival: isLate,
           workLocation: 'OFFICE',
-          enteredBy: { connect: { id: user.id } },
-          remarks: 'Logged via Quick Attendance Portal.',
+          enteredBy: { connect: { id: session.userId } },
+          remarks: 'Logged via Dashboard.',
         },
       });
 
-      await logAudit(user.id, user.name, user.role, 'ATTENDANCE', 'CHECK_IN', {
-        newValues: {
-          employeeName: employee.fullName,
-          checkInTime: now.toLocaleTimeString(),
-        },
-        siteCode: user.siteId || 'HQ',
+      await logAudit(session.userId, session.name, session.role, 'ATTENDANCE', 'CHECK_IN', {
+        newValues: { employeeName: employee.fullName, checkInTime: now.toLocaleTimeString() },
+        siteCode: session.siteCode || 'HQ',
       });
-
-      // Establish session for Dashboard access
-      await setSession({
-        userId: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        siteId: user.siteId,
-        siteCode: user.siteId || null,
-        siteName: null,
-        departmentId: user.departmentId,
-      });
-
-      return {
-        success: true,
-        type: 'CHECK_IN',
-        name: employee.fullName,
-        time: now.toLocaleTimeString(),
-      };
-    } else if (!existing.checkOut) {
-      // Record Check-out (Exit Done)
-      const now = new Date();
       
-      // Calculate working hours if checkIn exists
+    } else {
+      if (!existing) {
+        return { success: false, message: 'Cannot check out without checking in first.' };
+      }
+      if (existing.checkOut) {
+        return { success: false, message: 'Already checked out today.' };
+      }
+
       let workingHours = 0.0;
       if (existing.checkIn) {
         const diffMs = now.getTime() - new Date(existing.checkIn).getTime();
-        workingHours = Math.round((diffMs / (1000 * 60 * 60)) * 10) / 10; // in hours, rounded to 1 decimal
+        workingHours = Math.round((diffMs / (1000 * 60 * 60)) * 10) / 10;
       }
 
       await db.attendance.update({
         where: { id: existing.id },
-        data: {
-          checkOut: now,
-          workingHours,
-        },
+        data: { checkOut: now, workingHours },
       });
 
-      await logAudit(user.id, user.name, user.role, 'ATTENDANCE', 'CHECK_OUT', {
-        newValues: {
-          employeeName: employee.fullName,
-          checkOutTime: now.toLocaleTimeString(),
-          workingHours,
-        },
-        siteCode: user.siteId || 'HQ',
+      await logAudit(session.userId, session.name, session.role, 'ATTENDANCE', 'CHECK_OUT', {
+        newValues: { employeeName: employee.fullName, checkOutTime: now.toLocaleTimeString(), workingHours },
+        siteCode: session.siteCode || 'HQ',
       });
-
-      // Establish session for Dashboard access
-      await setSession({
-        userId: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        siteId: user.siteId,
-        siteCode: user.siteId || null,
-        siteName: null,
-        departmentId: user.departmentId,
-      });
-
-      return {
-        success: true,
-        type: 'CHECK_OUT',
-        name: employee.fullName,
-        time: now.toLocaleTimeString(),
-        workingHours,
-      };
-    } else {
-      // Already checked out - still establish session so they can view dashboard
-      await setSession({
-        userId: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        siteId: user.siteId,
-        siteCode: user.siteId || null,
-        siteName: null,
-        departmentId: user.departmentId,
-      });
-
-      return {
-        success: true,
-        type: 'ALREADY_LOGGED',
-        name: employee.fullName,
-        time: new Date().toLocaleTimeString(),
-        message: `You have already logged both entry and exit check-ins for today!`,
-      };
     }
+
+    revalidatePath('/employee/dashboard');
+    return { success: true, message: `Successfully ${type === 'CHECK_IN' ? 'checked in' : 'checked out'}.` };
   } catch (error: any) {
-    console.error('Portal attendance marker error:', error);
-    return { success: false, message: error.message || 'Server error logging attendance.' };
+    console.error('Employee attendance marker error:', error);
+    return { success: false, message: 'Server error logging attendance.' };
   }
 }

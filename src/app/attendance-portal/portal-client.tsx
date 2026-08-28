@@ -72,8 +72,7 @@ export default function AttendancePortalClient() {
     startTransition(async () => {
       const res = await markPortalAttendanceAction(emailOrId, password);
       if (res.success) {
-        setResult(res);
-        setCountdown(5);
+        router.push('/employee/dashboard');
       } else {
         setErrorMsg(res.message || 'Verification failed.');
       }
@@ -154,7 +153,7 @@ export default function AttendancePortalClient() {
           <div className="space-y-6">
             <div className="border-b border-[#2c2923] pb-4 text-center">
               <h1 className="text-xl font-serif font-bold text-[#faf9f6]">Regional Staff Portal</h1>
-              <p className="text-xs text-[#a09a8f] mt-1 font-sans">Enter your ID or email to stamp check-in / check-out times.</p>
+              <p className="text-xs text-[#a09a8f] mt-1 font-sans">Enter your ID or email to access your dashboard.</p>
             </div>
 
             {errorMsg && (
@@ -210,7 +209,7 @@ export default function AttendancePortalClient() {
                 {isPending ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <span>Record Attendance</span>
+                  <span>Login to Dashboard</span>
                 )}
               </button>
             </form>
