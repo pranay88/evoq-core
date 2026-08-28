@@ -252,6 +252,44 @@ export default function EmployeeDashboardView({
               )}
             </div>
           </div>
+          
+          {/* Recent Leave Requests */}
+          <div className="bg-card border border-border p-6 rounded-xl shadow-sm mt-6">
+            <h3 className="font-serif font-bold text-lg mb-4 flex items-center gap-2 pb-2 border-b border-border/60">
+              <Clock className="w-5 h-5 text-primary" /> Recent Requests
+            </h3>
+            
+            <div className="space-y-3">
+              {recentLeaves && recentLeaves.length > 0 ? (
+                recentLeaves.map((leave: any) => (
+                  <div key={leave.id} className="p-3 border border-border/60 bg-secondary/20 rounded-lg text-sm">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-semibold text-foreground">{leave.leaveType.replace('_', ' ')}</span>
+                      <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${
+                        leave.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 
+                        leave.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-600 border-rose-500/20' : 
+                        'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                      }`}>
+                        {leave.status}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground flex gap-2">
+                      <span>{new Date(leave.startDate).toLocaleDateString()}</span> - 
+                      <span>{new Date(leave.endDate).toLocaleDateString()}</span>
+                      <span className="font-mono bg-background px-1 border border-border rounded">({leave.days}d)</span>
+                    </div>
+                    {leave.remarks && (
+                      <div className="mt-2 text-xs p-2 bg-background/50 border border-border/50 rounded italic">
+                        <strong>HR Remark:</strong> {leave.remarks}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground italic">No recent leave requests.</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
