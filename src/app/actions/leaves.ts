@@ -57,7 +57,7 @@ export async function updateLeaveStatusAction(leaveId: string, status: 'APPROVED
       where: { id: leaveId },
       data: {
         status,
-        hrRemarks: remarks,
+        remarks: remarks,
         approvedById: session.userId,
       },
       include: { employee: true },

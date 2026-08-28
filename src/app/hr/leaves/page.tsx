@@ -38,7 +38,7 @@ export default async function HRLeavesPage() {
       }
     },
     orderBy: {
-      createdAt: 'desc'
+      appliedAt: 'desc'
     },
     take: 100
   });

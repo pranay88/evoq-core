@@ -115,7 +115,7 @@ export default function LeavesDashboard({ leaves }: { leaves: any[] }) {
             <div className="bg-card border border-border rounded-xl shadow-sm p-6 space-y-6 sticky top-6">
               <div>
                 <h3 className="font-serif font-bold text-lg text-foreground mb-1">Request Details</h3>
-                <p className="text-sm text-muted-foreground">Submitted on {formatDate(selectedLeave.createdAt)}</p>
+                <p className="text-sm text-muted-foreground">Submitted on {formatDate(selectedLeave.appliedAt)}</p>
               </div>
 
               <div className="space-y-4 text-sm bg-secondary/20 p-4 rounded-lg border border-border">
@@ -165,7 +165,7 @@ export default function LeavesDashboard({ leaves }: { leaves: any[] }) {
                 <div className="space-y-4">
                   <div className={`p-4 rounded-lg border ${getStatusColor(selectedLeave.status)}`}>
                     <p className="text-sm font-semibold mb-1">Status: {selectedLeave.status}</p>
-                    {selectedLeave.hrRemarks && <p className="text-xs mt-2"><strong>Remarks:</strong> {selectedLeave.hrRemarks}</p>}
+                    {selectedLeave.remarks && <p className="text-xs mt-2"><strong>Remarks:</strong> {selectedLeave.remarks}</p>}
                   </div>
                 </div>
               )}
