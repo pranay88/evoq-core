@@ -12,7 +12,7 @@ interface AuditPageProps {
 export default async function AuditTrailPage({ searchParams }: AuditPageProps) {
   const session = await getSession();
 
-  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN')) {
+  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN')) {
     notFound();
   }
 

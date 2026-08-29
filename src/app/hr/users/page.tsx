@@ -6,7 +6,7 @@ import UsersDashboard from '@/components/users/users-dashboard';
 export default async function UserManagementPage() {
   const session = await getSession();
 
-  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN')) {
+  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN')) {
     notFound();
   }
 

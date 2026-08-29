@@ -10,7 +10,7 @@ export const metadata = {
 export default async function HRLeavesPage() {
   const session = await getSession();
   
-  if (!session || session.role !== 'HR') {
+  if (!session || (session.role !== 'HR' && session.role !== 'SUPER_ADMIN')) {
     redirect('/unauthorized');
   }
 
