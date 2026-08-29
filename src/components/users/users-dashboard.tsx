@@ -39,6 +39,14 @@ export default function UsersDashboard({
   const [createPass, setCreatePass] = useState('');
   const [createRole, setCreateRole] = useState('FRONT_DESK');
   const [createSiteId, setCreateSiteId] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  
+  const displayedUsers = users.filter(u => {
+    const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter ? u.role === roleFilter : true;
+    return matchesSearch && matchesRole;
+  });
   const [createError, setCreateError] = useState('');
 
   const [resetModalOpen, setResetModalOpen] = useState(false);
