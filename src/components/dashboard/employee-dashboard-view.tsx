@@ -112,13 +112,8 @@ export default function EmployeeDashboardView({
 
   const handleLogout = async () => {
     if (!confirm('Are you sure you want to log out?')) return;
-    try {
-      const { logoutAction } = await import('@/app/actions/auth');
-      await logoutAction('session', 'Employee', 'EMPLOYEE'); // The real values don't strictly matter for the cookie clearing
-      window.location.href = '/login';
-    } catch (error) {
-      window.location.href = '/login';
-    }
+    // The server action now performs the redirect natively, guaranteeing the Set-Cookie header is processed
+    await logoutAction('session', 'Employee', 'EMPLOYEE');
   };
 
   const [attLoading, setAttLoading] = useState(false);

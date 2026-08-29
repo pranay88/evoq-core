@@ -173,15 +173,15 @@ export async function loginAction(prevState: any, formData: FormData) {
   }
 }
 
+import { redirect } from 'next/navigation';
+
 export async function logoutAction(userId: string, userName: string, userRole: string) {
   try {
     await logAudit(userId, userName, userRole, 'AUTH', 'LOGOUT');
-    await clearSession();
-    return { success: true };
-  } catch (error) {
-    console.error('Logout error:', error);
-    return { success: false };
-  }
+  } catch (error) {}
+  
+  await clearSession();
+  redirect('/login');
 }
 
 export async function resetPasswordAction(rawEmail: string, password: string) {
