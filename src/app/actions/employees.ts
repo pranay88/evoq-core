@@ -284,3 +284,53 @@ export async function toggleEmployeeStatusAction(id: string, status: string) {
     return { success: false, message: 'Failed to update employee status.' };
   }
 }
+
+export async function updateEmployeeProfileAction(
+  id: string,
+  data: {
+    fullName: string,
+    mobileNumber: string,
+    gender: string,
+    bloodGroup: string,
+    currentAddress: string,
+    permanentAddress: string,
+    emergencyContactName: string,
+    emergencyContactNumber: string,
+    emergencyContactRelationship: string,
+  }
+) {
+  try {
+    const session = await getSession();
+    if (!session || (session.role !== 'EMPLOYEE' && session.role !== 'HR' && session.role !== 'SUPER_ADMIN')) {
+      return { success: false, message: 'Unauthorized.' };
+    }
+
+    await db.employee.update({
+      where: { id },
+      data: {
+        fullName: data.fullName,
+        mobileNumber: data.mobileNumber,
+        gender: data.gender,
+        bloodGroup: data.bloodGroup || null,
+        currentAddress: data.currentAddress,
+        permanentAddress: data.permanentAddress,
+        emergencyContactName: data.emergencyContactName,
+        emergencyContactNumber: data.emergencyContactNumber,
+        emergencyContactRelationship: data.emergencyContactRelationship,
+      }
+    });
+
+    if (session.role === 'EMPLOYEE') {
+      await db.user.updateMany({
+        where: { email: session.email },
+        data: { name: data.fullName }
+      });
+      revalidatePath('/employee/dashboard');
+    }
+
+    return { success: true, message: 'Profile updated successfully.' };
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return { success: false, message: 'Failed to update profile.' };
+  }
+}

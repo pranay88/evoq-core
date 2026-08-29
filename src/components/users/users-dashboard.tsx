@@ -307,6 +307,7 @@ export default function UsersDashboard({
                     onChange={(e) => setCreateRole(e.target.value)}
                     className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
+                    <option value="EMPLOYEE">Employee</option>
                     <option value="FRONT_DESK">Front Desk</option>
                     <option value="HR">HR Officer</option>
                     <option value="ADMIN">Administrator</option>

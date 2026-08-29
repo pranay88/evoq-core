@@ -56,6 +56,51 @@ export async function createUserAction(
       },
     });
 
+    if (role === 'EMPLOYEE') {
+      const existingEmployee = await db.employee.findFirst({
+        where: {
+          OR: [
+            { personalEmail: email },
+            { officialEmail: email }
+          ]
+        }
+      });
+
+      if (!existingEmployee) {
+        const empCount = await db.employee.count();
+        const nextSeq = 101 + empCount;
+        const employeeId = `EVOQ${nextSeq}`;
+
+        let dept = await db.department.findFirst();
+        if (!dept) {
+          dept = await db.department.create({ data: { name: 'General', code: 'GEN', headName: 'Admin', status: 'ACTIVE' } });
+        }
+
+        await db.employee.create({
+          data: {
+            employeeId,
+            fullName: name,
+            personalEmail: email,
+            officialEmail: email,
+            mobileNumber: 'PENDING',
+            dateOfBirth: new Date(),
+            gender: 'PENDING',
+            currentAddress: 'PENDING',
+            permanentAddress: 'PENDING',
+            emergencyContactName: 'PENDING',
+            emergencyContactNumber: 'PENDING',
+            emergencyContactRelationship: 'PENDING',
+            departmentId: dept.id,
+            designation: 'PENDING',
+            siteId: siteId,
+            joiningDate: new Date(),
+            employmentType: 'FULL_TIME',
+            employmentStatus: 'ACTIVE',
+          }
+        });
+      }
+    }
+
     await logAudit(session.userId, session.name, session.role, 'USERS', 'CREATE_USER', {
       recordId: newUser.id,
       newValues: { name, email, role, siteId },

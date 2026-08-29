@@ -12,7 +12,8 @@ import {
   MapPin,
   CheckCircle2,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Edit
 } from 'lucide-react';
 import { formatDate, formatDateTime } from '@/lib/utils';
 import Link from 'next/link';
@@ -44,6 +45,44 @@ export default function EmployeeDashboardView({
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveError, setLeaveError] = useState('');
   const [leaveSuccess, setLeaveSuccess] = useState('');
+
+  // Profile Edit State
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [profileData, setProfileData] = useState({
+    fullName: employee?.fullName || '',
+    mobileNumber: employee?.mobileNumber || '',
+    gender: employee?.gender || '',
+    bloodGroup: employee?.bloodGroup || '',
+    currentAddress: employee?.currentAddress || '',
+    permanentAddress: employee?.permanentAddress || '',
+    emergencyContactName: employee?.emergencyContactName || '',
+    emergencyContactNumber: employee?.emergencyContactNumber || '',
+    emergencyContactRelationship: employee?.emergencyContactRelationship || '',
+  });
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [profileSuccess, setProfileSuccess] = useState('');
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileLoading(true);
+    setProfileError('');
+    setProfileSuccess('');
+
+    const { updateEmployeeProfileAction } = await import('@/app/actions/employees');
+    const res = await updateEmployeeProfileAction(employee.id, profileData);
+
+    if (res.success) {
+      setProfileSuccess(res.message);
+      setTimeout(() => {
+        setProfileModalOpen(false);
+        router.refresh();
+      }, 1500);
+    } else {
+      setProfileError(res.message);
+    }
+    setProfileLoading(false);
+  };
 
   const handleApplyLeave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,6 +195,9 @@ export default function EmployeeDashboardView({
           </div>
           
           <div className="flex gap-2">
+            <button onClick={() => setProfileModalOpen(true)} className="flex-1 text-xs text-center text-primary-foreground bg-primary/90 hover:bg-primary transition-colors flex items-center justify-center gap-1.5 border border-primary py-2 rounded-lg">
+              <Edit className="w-4 h-4" /> Edit Profile
+            </button>
             <button onClick={() => setLeaveModalOpen(true)} className="flex-1 text-xs text-center text-primary-foreground bg-primary hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 border border-primary py-2 rounded-lg">
               <CalendarCheck className="w-4 h-4" /> Apply Leave
             </button>
@@ -365,6 +407,100 @@ export default function EmployeeDashboardView({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      {/* Profile Edit Modal */}
+      {profileModalOpen && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-xl shadow-lg w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-secondary/30 shrink-0">
+              <h2 className="text-xl font-serif font-bold flex items-center gap-2 text-foreground">
+                <Edit className="w-5 h-5 text-primary" /> Edit Profile Details
+              </h2>
+              <button onClick={() => setProfileModalOpen(false)} className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-secondary transition-colors">
+                &times;
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              {profileSuccess && <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 text-sm rounded border border-emerald-200">{profileSuccess}</div>}
+              {profileError && <div className="mb-4 p-3 bg-rose-50 text-rose-700 text-sm rounded border border-rose-200">{profileError}</div>}
+
+              <form onSubmit={handleProfileUpdate} className="space-y-4 font-sans text-sm">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Full Name *</label>
+                    <input type="text" value={profileData.fullName} onChange={e => setProfileData({...profileData, fullName: e.target.value})} required className="w-full px-3 py-2 bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Mobile Number *</label>
+                    <input type="text" value={profileData.mobileNumber} onChange={e => setProfileData({...profileData, mobileNumber: e.target.value})} required className="w-full px-3 py-2 bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Gender *</label>
+                    <select value={profileData.gender} onChange={e => setProfileData({...profileData, gender: e.target.value})} required className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                      <option value="PENDING">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Blood Group</label>
+                    <select value={profileData.bloodGroup} onChange={e => setProfileData({...profileData, bloodGroup: e.target.value})} className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                      <option value="">Select Blood Group</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Current Address *</label>
+                    <textarea value={profileData.currentAddress} onChange={e => setProfileData({...profileData, currentAddress: e.target.value})} required rows={3} className="w-full px-3 py-2 bg-background border border-border rounded resize-none focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Permanent Address *</label>
+                    <textarea value={profileData.permanentAddress} onChange={e => setProfileData({...profileData, permanentAddress: e.target.value})} required rows={3} className="w-full px-3 py-2 bg-background border border-border rounded resize-none focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-border/50">
+                  <h4 className="font-semibold text-sm mb-3">Emergency Contact</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Name *</label>
+                      <input type="text" value={profileData.emergencyContactName} onChange={e => setProfileData({...profileData, emergencyContactName: e.target.value})} required className="w-full px-3 py-2 bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Number *</label>
+                      <input type="text" value={profileData.emergencyContactNumber} onChange={e => setProfileData({...profileData, emergencyContactNumber: e.target.value})} required className="w-full px-3 py-2 bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Relationship *</label>
+                      <input type="text" value={profileData.emergencyContactRelationship} onChange={e => setProfileData({...profileData, emergencyContactRelationship: e.target.value})} required className="w-full px-3 py-2 bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex justify-end gap-3 border-t border-border/50 mt-4">
+                  <button type="button" onClick={() => setProfileModalOpen(false)} className="px-4 py-2 hover:bg-secondary text-foreground rounded font-semibold transition-colors">Cancel</button>
+                  <button type="submit" disabled={profileLoading} className="px-4 py-2 bg-primary hover:bg-primary/95 text-primary-foreground rounded font-semibold transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50">
+                    {profileLoading && <Loader2 className="w-4 h-4 animate-spin" />} Save Profile
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
