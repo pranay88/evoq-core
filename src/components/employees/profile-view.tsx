@@ -242,9 +242,10 @@ export default function ProfileView({ employee, auditLogs, userRole }: ProfileVi
                     <span className="text-foreground flex items-center gap-1.5 mt-0.5"><Mail className="w-3.5 h-3.5 text-primary" /> {employee.personalEmail}</span>
                   </div>
                   <div>
-                    <span className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date of Birth</span>
-                    <span className="text-foreground mt-0.5">{formatDate(employee.dateOfBirth)}</span>
-                  </div>
+                      <span className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">Birth Details</span>
+                      <span className="text-foreground mt-0.5">{formatDate(employee.dateOfBirth)} {employee.timeOfBirth ? `at ${employee.timeOfBirth}` : ''}</span>
+                      {employee.placeOfBirth && <span className="text-muted-foreground text-xs block mt-0.5">Place: {employee.placeOfBirth}</span>}
+                    </div>
                   <div>
                     <span className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">Gender / Blood Group</span>
                     <span className="text-foreground mt-0.5">{employee.gender} &bull; {employee.bloodGroup || 'N/A'}</span>
