@@ -110,11 +110,9 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
             <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-md text-xs">
               {state.message}
             </div>
-          )}
 
           {/* STEP 1: Personal Profile */}
-          {step === 1 && (
-            <div className="space-y-6">
+          <div className={`space-y-6 ${step !== 1 ? 'hidden' : ''}`}>
               <div className="flex items-center gap-2.5 pb-2 border-b border-border/60">
                 <User className="w-5 h-5 text-primary" />
                 <h3 className="text-lg font-serif font-bold text-foreground">Personal Details</h3>
@@ -216,11 +214,9 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                 </div>
               </div>
             </div>
-          )}
 
           {/* STEP 2: Addresses & Emergency Contact */}
-          {step === 2 && (
-            <div className="space-y-6">
+          <div className={`space-y-6 ${step !== 2 ? 'hidden' : ''}`}>
               <div className="flex items-center gap-2.5 pb-2 border-b border-border/60">
                 <MapPinIcon className="w-5 h-5 text-primary" />
                 <h3 className="text-lg font-serif font-bold text-foreground">Addresses & Emergency Contacts</h3>
@@ -290,11 +286,9 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                 </div>
               </div>
             </div>
-          )}
 
           {/* STEP 3: Banking & Government Identifiers */}
-          {step === 3 && (
-            <div className="space-y-6">
+          <div className={`space-y-6 ${step !== 3 ? 'hidden' : ''}`}>
               <div className="flex items-center gap-2.5 pb-2 border-b border-border/60">
                 <Landmark className="w-5 h-5 text-primary" />
                 <h3 className="text-lg font-serif font-bold text-foreground">Bank & statutory settings</h3>
@@ -374,11 +368,9 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                 </div>
               </div>
             </div>
-          )}
 
           {/* STEP 4: Document Uploads & Acknowledgement */}
-          {step === 4 && (
-            <div className="space-y-6">
+          <div className={`space-y-6 ${step !== 4 ? 'hidden' : ''}`}>
               <div className="flex items-center justify-between pb-2 border-b border-border/60">
                 <div className="flex items-center gap-2.5">
                   <FileUp className="w-5 h-5 text-primary" />
@@ -503,7 +495,6 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                 </label>
               </div>
             </div>
-          )}
 
           {/* Stepper Footer Controls */}
           <div className="flex justify-between items-center pt-4 border-t border-border">
