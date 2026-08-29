@@ -53,18 +53,18 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
       // Create a fresh FormData to hold compressed files
       const formData = new FormData();
       
-      // Copy all text fields
-      rawFormData.forEach((value, key) => {
-        if (!key.startsWith('file_')) {
-          formData.append(key, value);
-        }
+
+      // Append all saved text fields from local state because unmounted steps are not in rawFormData
+      Object.entries(savedData).forEach(([key, value]) => {
+        formData.append(key, value);
       });
+
       
       // Compress and append files
-      for (const f of aadhaarFiles) formData.append('file_aadhaar', await compressFile(f));
-      for (const f of panFiles) formData.append('file_pan', await compressFile(f));
-      for (const f of photoFiles) formData.append('file_photo', await compressFile(f));
-      for (const f of academicFiles) formData.append('file_academic', await compressFile(f));
+      for (const f of aadhaarFiles) formData.append('file_aadhaar', await compressFile(f), f.name);
+      for (const f of panFiles) formData.append('file_pan', await compressFile(f), f.name);
+      for (const f of photoFiles) formData.append('file_photo', await compressFile(f), f.name);
+      for (const f of academicFiles) formData.append('file_academic', await compressFile(f), f.name);
 
       const res = await submitOnboardingAction(token, formData);
       return res;
