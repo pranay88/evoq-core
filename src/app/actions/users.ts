@@ -59,7 +59,8 @@ export async function createUserAction(
         },
       });
 
-      const isEmployeeRole = ['EMPLOYEE', 'CRM', 'ACCOUNTS', 'IT', 'DIGITAL', 'LEGAL', 'CIVIL', 'SUPERVISOR'].includes(role);
+      // All system users (except SUPER_ADMIN) are employees and need an Employee Directory profile
+      const isEmployeeRole = role !== 'SUPER_ADMIN';
 
       if (isEmployeeRole) {
         const existingEmployee = await tx.employee.findFirst({
@@ -86,7 +87,10 @@ export async function createUserAction(
             'LEGAL': 'Legal',
             'CIVIL': 'Civil',
             'SUPERVISOR': 'Supervisor',
-            'EMPLOYEE': 'Operations'
+            'EMPLOYEE': 'Operations',
+            'HR': 'HR',
+            'ADMIN': 'Management',
+            'FRONT_DESK': 'Front Desk'
           };
           
           let targetDeptName = roleMapping[role] || 'General';
@@ -97,6 +101,12 @@ export async function createUserAction(
 
           if (!dept) {
             dept = await tx.department.create({ data: { name: targetDeptName, code: targetDeptName.substring(0, 3).toUpperCase(), headName: 'Admin', status: 'ACTIVE' } });
+          }
+
+          let defaultSiteId = siteId;
+          if (!defaultSiteId) {
+            const hqSite = await tx.site.findFirst();
+            if (hqSite) defaultSiteId = hqSite.id;
           }
 
           await tx.employee.create({
@@ -115,7 +125,7 @@ export async function createUserAction(
               emergencyContactRelationship: 'PENDING',
               departmentId: dept.id,
               designation: 'PENDING',
-              siteId: siteId,
+              siteId: defaultSiteId || '',
               joiningDate: new Date(),
               employmentType: 'FULL_TIME',
               employmentStatus: 'ACTIVE',
