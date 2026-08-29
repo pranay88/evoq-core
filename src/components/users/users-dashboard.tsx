@@ -50,14 +50,15 @@ export default function UsersDashboard({
   // Submit Create User
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!createName || !createEmail || !createPass || !createRole || !createSiteId) {
+    if (!createName || !createEmail || !createRole || (!createSiteId && !['HR', 'ADMIN'].includes(createRole))) {
       setCreateError('Please fill in all required fields.');
       return;
     }
     setCreateError('');
 
     startTransition(async () => {
-      const res = await createUserAction(createName, createEmail, createPass, createRole, createSiteId);
+      const finalSiteId = ['HR', 'ADMIN'].includes(createRole) ? '' : createSiteId;
+      const res = await createUserAction(createName, createEmail, createPass, createRole, finalSiteId);
       if (res.success) {
         setCreateModalOpen(false);
         setCreateName('');
@@ -316,18 +317,21 @@ export default function UsersDashboard({
                   </select>
                 </div>
 
-                <div>
-                  <label className="block font-semibold text-muted-foreground uppercase mb-1.5">Assigned Site *</label>
-                  <select
-                    value={createSiteId}
-                    onChange={(e) => setCreateSiteId(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    {sites.map((s: any) => (
-                      <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
-                    ))}
-                  </select>
-                </div>
+                {!['HR', 'ADMIN'].includes(createRole) && (
+                  <div>
+                    <label className="block font-semibold text-muted-foreground uppercase mb-1.5">Assigned Site *</label>
+                    <select
+                      value={createSiteId}
+                      onChange={(e) => setCreateSiteId(e.target.value)}
+                      className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">Select a Site</option>
+                      {sites.map((s: any) => (
+                        <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <button

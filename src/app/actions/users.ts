@@ -29,7 +29,7 @@ export async function createUserAction(
     return { success: false, message: 'Unauthorized. Only Super Admins can create Super Admins.' };
   }
 
-  if (!name || !email || !role || !siteId) {
+  if (!name || !email || !role || (!siteId && !['HR', 'ADMIN'].includes(role))) {
     return { success: false, message: 'Missing required account registration fields.' };
   }
 
@@ -54,7 +54,7 @@ export async function createUserAction(
           email,
           passwordHash: hashedPassword,
           role,
-          siteId,
+          siteId: siteId || null,
           status: 'ACTIVE',
         },
       });
