@@ -2,6 +2,7 @@
 
 import { useState, useActionState, useEffect } from 'react';
 import { submitOnboardingAction } from '@/app/actions/onboarding';
+import imageCompression from 'browser-image-compression';
 import { Loader2, Landmark, ShieldCheck, User, FileUp, CheckCircle2, ArrowRight } from 'lucide-react';
 
 interface OnboardFormProps {
@@ -36,18 +37,41 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
     localStorage.setItem("onboard_" + token, JSON.stringify(data));
   };
 
-  const [state, formAction, isPending] = useActionState(
-    async (prevState: any, formData: FormData) => {
-      // Append files and token
-      aadhaarFiles.forEach(f => formData.append('file_aadhaar', f));
-      panFiles.forEach(f => formData.append('file_pan', f));
-      photoFiles.forEach(f => formData.append('file_photo', f));
-      academicFiles.forEach(f => formData.append('file_academic', f));
+  
+  const compressFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) return file;
+    try {
+      const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true };
+      return await imageCompression(file, options);
+    } catch (e) {
+      return file;
+    }
+  };
 
-      return submitOnboardingAction(token, formData);
+  const [state, formAction, isPending] = useActionState(
+    async (prevState: any, rawFormData: FormData) => {
+      // Create a fresh FormData to hold compressed files
+      const formData = new FormData();
+      
+      // Copy all text fields
+      rawFormData.forEach((value, key) => {
+        if (!key.startsWith('file_')) {
+          formData.append(key, value);
+        }
+      });
+      
+      // Compress and append files
+      for (const f of aadhaarFiles) formData.append('file_aadhaar', await compressFile(f));
+      for (const f of panFiles) formData.append('file_pan', await compressFile(f));
+      for (const f of photoFiles) formData.append('file_photo', await compressFile(f));
+      for (const f of academicFiles) formData.append('file_academic', await compressFile(f));
+
+      const res = await submitOnboardingAction(token, formData);
+      return res;
     },
     { success: false, message: '' }
   );
+
 
   const nextStep = () => setStep((prev) => Math.min(prev + 1, 4));
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
