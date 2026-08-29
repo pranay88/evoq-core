@@ -342,25 +342,49 @@ export async function deleteEmployeeAction(id: string) {
   }
 
   try {
-    // Delete the employee
-    // Using transaction in case we need to delete related data manually (though Prisma cascading might handle some)
     await db.$transaction(async (tx) => {
-      // Delete documents
-      await tx.document.deleteMany({ where: { employeeId: id } });
-      // Delete attendance
-      await tx.attendance.deleteMany({ where: { employeeId: id } });
-      // Delete leaves
+      // 1. EmployeeOfTheMonth
+      await tx.employeeOfTheMonth.deleteMany({ where: { employeeId: id } });
+      
+      // 2. Documents and Versions
+      const docs = await tx.document.findMany({ where: { employeeId: id }, select: { id: true } });
+      const docIds = docs.map(d => d.id);
+      if (docIds.length > 0) {
+        await tx.documentVersion.deleteMany({ where: { documentId: { in: docIds } } });
+        await tx.document.deleteMany({ where: { employeeId: id } });
+      }
+
+      // 3. Attendance and Corrections
+      const atts = await tx.attendance.findMany({ where: { employeeId: id }, select: { id: true } });
+      const attIds = atts.map(a => a.id);
+      if (attIds.length > 0) {
+        await tx.attendanceCorrection.deleteMany({ where: { attendanceId: { in: attIds } } });
+        await tx.attendance.deleteMany({ where: { employeeId: id } });
+      }
+
+      // 4. Leaves
       await tx.leaveBalance.deleteMany({ where: { employeeId: id } });
       await tx.leaveRequest.deleteMany({ where: { employeeId: id } });
-      // Delete assets (unassign first or delete depending on business logic, here we just delete)
-      await tx.asset.deleteMany({ where: { assignedToId: id } });
-      // Delete audit logs
-      await tx.auditLog.deleteMany({ where: { recordId: id } });
-      
-      // Finally delete employee
-      await tx.employee.delete({
-        where: { id }
+
+      // 5. Assets
+      const assets = await tx.issuedAsset.findMany({ where: { employeeId: id }, select: { id: true } });
+      const assetIds = assets.map(a => a.id);
+      if (assetIds.length > 0) {
+        await tx.assetReturn.deleteMany({ where: { issuedAssetId: { in: assetIds } } });
+        await tx.issuedAsset.deleteMany({ where: { employeeId: id } });
+      }
+
+      // Nullify inventory transactions
+      await tx.inventoryTransaction.updateMany({
+        where: { employeeId: id },
+        data: { employeeId: null }
       });
+
+      // 6. Audit Logs
+      await tx.auditLog.deleteMany({ where: { recordId: id } });
+
+      // 7. Finally Employee
+      await tx.employee.delete({ where: { id } });
     });
 
     revalidatePath("/hr/employees");
