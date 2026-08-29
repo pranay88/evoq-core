@@ -78,9 +78,25 @@ export async function createUserAction(
           const uniqueSuffix = Date.now().toString().slice(-4);
           const employeeId = `EVOQ${nextSeq}-${uniqueSuffix}`;
 
-          let dept = await tx.department.findFirst();
+          let roleMapping: Record<string, string> = {
+            'CRM': 'CRM',
+            'ACCOUNTS': 'Accounts',
+            'IT': 'IT',
+            'DIGITAL': 'Digital',
+            'LEGAL': 'Legal',
+            'CIVIL': 'Civil',
+            'SUPERVISOR': 'Supervisor',
+            'EMPLOYEE': 'Operations'
+          };
+          
+          let targetDeptName = roleMapping[role] || 'General';
+
+          let dept = await tx.department.findFirst({
+            where: { name: { equals: targetDeptName, mode: 'insensitive' } }
+          });
+
           if (!dept) {
-            dept = await tx.department.create({ data: { name: 'General', code: 'GEN', headName: 'Admin', status: 'ACTIVE' } });
+            dept = await tx.department.create({ data: { name: targetDeptName, code: targetDeptName.substring(0, 3).toUpperCase(), headName: 'Admin', status: 'ACTIVE' } });
           }
 
           await tx.employee.create({
