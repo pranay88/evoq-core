@@ -56,29 +56,10 @@ export default function Navbar({ user, sites, onMenuToggle }: NavbarProps) {
     setTheme(activeTheme);
   }, []);
 
-  // Fetch notifications (mocked for initial layout, but will connect to backend API soon)
+  // Fetch notifications (connect to backend API later)
   useEffect(() => {
-    // Standard mock notifications matching the seed alerts
-    const mockNotifications: NotificationItem[] = [
-      {
-        id: '1',
-        title: 'Low Stock Alert',
-        description: 'JK A4 Paper Ream is below minimum stock level.',
-        type: 'LOW_STOCK',
-        createdAt: new Date().toISOString(),
-        read: false,
-      },
-      {
-        id: '2',
-        title: 'Upcoming Birthday Today',
-        description: 'Rohan Sen (TECH) celebrates their birthday today!',
-        type: 'BIRTHDAY',
-        createdAt: new Date().toISOString(),
-        read: false,
-      },
-    ];
-    setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => !n.read).length);
+    setNotifications([]);
+    setUnreadCount(0);
   }, []);
 
   const handleSignOut = async () => {
