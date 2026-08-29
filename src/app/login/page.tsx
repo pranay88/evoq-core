@@ -29,6 +29,7 @@ function LoginContent() {
       } else {
         // Default dashboards based on roles
         switch (state.role) {
+          case 'SUPER_ADMIN':
           case 'HR':
             router.push('/hr/dashboard');
             break;
@@ -39,6 +40,13 @@ function LoginContent() {
             router.push('/frontdesk/dashboard');
             break;
           case 'EMPLOYEE':
+          case 'CRM':
+          case 'ACCOUNTS':
+          case 'IT':
+          case 'DIGITAL':
+          case 'LEGAL':
+          case 'CIVIL':
+          case 'SUPERVISOR':
             router.push('/employee/dashboard');
             break;
           default:
