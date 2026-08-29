@@ -112,7 +112,13 @@ export default function EmployeeDashboardView({
 
   const handleLogout = async () => {
     if (!confirm('Are you sure you want to log out?')) return;
-    router.push('/login');
+    try {
+      const { logoutAction } = await import('@/app/actions/auth');
+      await logoutAction('session', 'Employee', 'EMPLOYEE'); // The real values don't strictly matter for the cookie clearing
+      window.location.href = '/login';
+    } catch (error) {
+      window.location.href = '/login';
+    }
   };
 
   const [attLoading, setAttLoading] = useState(false);
