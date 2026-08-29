@@ -165,7 +165,8 @@ export async function toggleUserStatusAction(userId: string, currentStatus: stri
 
   try {
     const targetUser = await db.user.findUnique({ where: { id: userId } });
-    if (targetUser?.role === 'SUPER_ADMIN' && session.role !== 'SUPER_ADMIN') {
+    if (!targetUser) return { success: false, message: 'User not found.' };
+    if (targetUser.role === 'SUPER_ADMIN' && session.role !== 'SUPER_ADMIN') {
       return { success: false, message: 'Unauthorized. Only Super Admins can manage Super Admins.' };
     }
 
@@ -204,7 +205,8 @@ export async function resetUserPasswordAction(userId: string, newPasswordVal: st
 
   try {
     const targetUser = await db.user.findUnique({ where: { id: userId } });
-    if (targetUser?.role === 'SUPER_ADMIN' && session.role !== 'SUPER_ADMIN') {
+    if (!targetUser) return { success: false, message: 'User not found.' };
+    if (targetUser.role === 'SUPER_ADMIN' && session.role !== 'SUPER_ADMIN') {
       return { success: false, message: 'Unauthorized. Only Super Admins can manage Super Admins.' };
     }
 
