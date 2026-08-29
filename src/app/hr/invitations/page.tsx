@@ -93,7 +93,7 @@ export default async function InvitationsPage() {
                         </td>
                         <td className="px-5 py-4 text-right">
                           {inv.status === 'PENDING' && (
-                            <CopyLinkButton token={inv.token} />
+                            <CopyLinkButton token={inv.token} email={inv.email} phone={inv.phone || undefined} />
                           )}
                         </td>
                       </tr>
