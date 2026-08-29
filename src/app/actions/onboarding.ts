@@ -250,11 +250,14 @@ export async function approveSubmissionAction(
     // Database transaction to create/update employee and save uploaded documents
     const result = await db.$transaction(async (tx) => {
       // 1. Check if Employee placeholder exists (created during User Registration)
+      // Match by invitation email (which is reliable) or personal email
+      const targetEmail = submission.invitation.email;
       const existingEmployee = await tx.employee.findFirst({
         where: {
           OR: [
-            { personalEmail: data.personalEmail },
-            { officialEmail: data.personalEmail }
+            { personalEmail: { equals: targetEmail, mode: 'insensitive' } },
+            { officialEmail: { equals: targetEmail, mode: 'insensitive' } },
+            { personalEmail: { equals: data.personalEmail || '', mode: 'insensitive' } }
           ]
         }
       });
