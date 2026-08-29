@@ -163,7 +163,7 @@ export default function VisitorsLog({
         </div>
         <div className="flex gap-2">
           <Link
-            href={`/hr/reports?type=visitors&siteId=${activeSiteId || ''}`}
+            href={`/api/reports?type=visitors&siteId=${activeSiteId || ''}`}
             className="flex items-center gap-2 px-4 py-2 border border-border bg-card hover:bg-secondary text-foreground text-sm rounded-md transition-colors shadow-sm"
           >
             <FileSpreadsheet className="w-4 h-4 text-muted-foreground" />

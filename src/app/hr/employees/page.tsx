@@ -124,7 +124,7 @@ export default async function EmployeesPage(props: { searchParams: Promise<Searc
         </div>
         <div className="flex gap-3">
           <Link
-            href="/hr/reports?type=employees"
+            href="/api/reports?type=employees"
             className="flex items-center gap-2 px-4 py-2 border border-border bg-card hover:bg-secondary text-foreground text-sm font-sans rounded-md transition-all shadow-sm"
           >
             <FileSpreadsheet className="w-4 h-4 text-muted-foreground" />
