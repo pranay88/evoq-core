@@ -82,15 +82,15 @@ export async function middleware(request: NextRequest) {
       }
 
       // Route-based authorization check
-      if (pathname.startsWith('/hr') && pathname !== '/hr/leaderboard' && user.role !== 'HR') {
+      if (pathname.startsWith('/hr') && pathname !== '/hr/leaderboard' && user.role !== 'HR' && user.role !== 'SUPER_ADMIN') {
         return NextResponse.redirect(new URL('/unauthorized', request.url));
       }
 
-      if (pathname.startsWith('/admin') && user.role !== 'ADMIN' && user.role !== 'HR') {
+      if (pathname.startsWith('/admin') && user.role !== 'ADMIN' && user.role !== 'HR' && user.role !== 'SUPER_ADMIN') {
         return NextResponse.redirect(new URL('/unauthorized', request.url));
       }
 
-      if (pathname.startsWith('/frontdesk') && user.role !== 'FRONT_DESK' && user.role !== 'HR') {
+      if (pathname.startsWith('/frontdesk') && user.role !== 'FRONT_DESK' && user.role !== 'HR' && user.role !== 'SUPER_ADMIN') {
         return NextResponse.redirect(new URL('/unauthorized', request.url));
       }
 
@@ -108,6 +108,7 @@ export async function middleware(request: NextRequest) {
 
 function getDashboardUrl(role: string): string {
   switch (role) {
+    case 'SUPER_ADMIN':
     case 'HR':
       return '/hr/dashboard';
     case 'ADMIN':

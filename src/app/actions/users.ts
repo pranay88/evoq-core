@@ -21,8 +21,12 @@ export async function createUserAction(
   siteId: string
 ) {
   const session = await getSession();
-  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN')) {
+  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN')) {
     return { success: false, message: 'Unauthorized. Only HR or Admin can manage user accounts.' };
+  }
+
+  if (role === 'SUPER_ADMIN' && session.role !== 'SUPER_ADMIN') {
+    return { success: false, message: 'Unauthorized. Only Super Admins can create Super Admins.' };
   }
 
   if (!name || !email || !passwordVal || !role || !siteId) {
@@ -71,7 +75,7 @@ export async function createUserAction(
 // Toggle user status (Active/Inactive)
 export async function toggleUserStatusAction(userId: string, currentStatus: string) {
   const session = await getSession();
-  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN')) {
+  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN')) {
     return { success: false, message: 'Unauthorized.' };
   }
 
@@ -79,9 +83,13 @@ export async function toggleUserStatusAction(userId: string, currentStatus: stri
     return { success: false, message: 'Self-deactivation is prohibited.' };
   }
 
-  const nextStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-
   try {
+    const targetUser = await db.user.findUnique({ where: { id: userId } });
+    if (targetUser?.role === 'SUPER_ADMIN' && session.role !== 'SUPER_ADMIN') {
+      return { success: false, message: 'Unauthorized. Only Super Admins can manage Super Admins.' };
+    }
+
+    const nextStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     const updated = await db.user.update({
       where: { id: userId },
       data: { status: nextStatus },
@@ -106,7 +114,7 @@ export async function toggleUserStatusAction(userId: string, currentStatus: stri
 // Reset password directly
 export async function resetUserPasswordAction(userId: string, newPasswordVal: string) {
   const session = await getSession();
-  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN')) {
+  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN')) {
     return { success: false, message: 'Unauthorized.' };
   }
 
@@ -115,6 +123,11 @@ export async function resetUserPasswordAction(userId: string, newPasswordVal: st
   }
 
   try {
+    const targetUser = await db.user.findUnique({ where: { id: userId } });
+    if (targetUser?.role === 'SUPER_ADMIN' && session.role !== 'SUPER_ADMIN') {
+      return { success: false, message: 'Unauthorized. Only Super Admins can manage Super Admins.' };
+    }
+
     const hashedPassword = hashPassword(newPasswordVal);
 
     await db.user.update({
@@ -140,7 +153,7 @@ export async function resetUserPasswordAction(userId: string, newPasswordVal: st
 // Delete user login permanently
 export async function deleteUserAction(targetUserId: string) {
   const session = await getSession();
-  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN')) {
+  if (!session || (session.role !== 'HR' && session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN')) {
     return { success: false, message: 'Unauthorized. Only HR or Admin can manage user accounts.' };
   }
 
@@ -156,6 +169,10 @@ export async function deleteUserAction(targetUserId: string) {
 
     if (!userToDelete) {
       return { success: false, message: 'User account not found.' };
+    }
+
+    if (userToDelete.role === 'SUPER_ADMIN' && session.role !== 'SUPER_ADMIN') {
+      return { success: false, message: 'Unauthorized. Only Super Admins can manage Super Admins.' };
     }
 
     // 2. Database transaction to reassign attribution to current HR user and delete target user cleanly

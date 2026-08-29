@@ -12,6 +12,9 @@ export default async function UserManagementPage() {
 
   // Fetch all user accounts
   const users = await db.user.findMany({
+    where: session.role === 'SUPER_ADMIN' ? {} : {
+      role: { not: 'SUPER_ADMIN' }
+    },
     include: {
       site: true,
     },

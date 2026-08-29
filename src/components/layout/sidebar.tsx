@@ -48,7 +48,7 @@ export default function Sidebar({ user, isCollapsed, setIsCollapsed }: SidebarPr
   const getNavItems = () => {
     const role = user.role;
 
-    if (role === 'HR') {
+    if (role === 'HR' || role === 'SUPER_ADMIN') {
       return [
         { name: 'Dashboard', href: '/hr/dashboard', icon: LayoutDashboard },
         { name: 'Employees', href: '/hr/employees', icon: Users },
