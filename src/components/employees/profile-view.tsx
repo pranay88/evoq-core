@@ -187,13 +187,35 @@ export default function ProfileView({ employee, auditLogs, userRole }: ProfileVi
         </div>
 
         {isHr && (
-          <Link
-            href={`/hr/employees/${employee.id}/edit`}
-            className="flex items-center gap-2 px-4 py-2 border border-border bg-card hover:bg-secondary text-foreground text-sm font-medium rounded-md shadow-sm transition-all"
-          >
-            <Edit className="w-4 h-4 text-muted-foreground" />
-            Edit Profile
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href={`/hr/employees/${employee.id}/edit`}
+              className="flex items-center gap-2 px-4 py-2 border border-border bg-card hover:bg-secondary text-foreground text-sm font-medium rounded-md shadow-sm transition-all"
+            >
+              <Edit className="w-4 h-4 text-muted-foreground" />
+              Edit
+            </Link>
+            <button
+              onClick={async () => {
+                if (confirm("Are you sure you want to delete this profile? This action is irreversible.")) {
+                  const { deleteEmployeeAction } = await import('@/app/actions/employees');
+                  startTransition(async () => {
+                    const res = await deleteEmployeeAction(employee.id);
+                    if (res.success) {
+                      router.push('/hr/employees');
+                    } else {
+                      alert(res.message);
+                    }
+                  });
+                }
+              }}
+              disabled={isPending}
+              className="flex items-center gap-2 px-4 py-2 border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-sm font-medium rounded-md shadow-sm transition-all disabled:opacity-50"
+            >
+              {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertCircle className="w-4 h-4" />}
+              Delete
+            </button>
+          </div>
         )}
       </div>
 

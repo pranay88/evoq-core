@@ -334,3 +334,39 @@ export async function updateEmployeeProfileAction(
     return { success: false, message: 'Failed to update profile.' };
   }
 }
+
+export async function deleteEmployeeAction(id: string) {
+  const session = await getSession();
+  if (!session || session.role !== "HR") {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  try {
+    // Delete the employee
+    // Using transaction in case we need to delete related data manually (though Prisma cascading might handle some)
+    await db.$transaction(async (tx) => {
+      // Delete documents
+      await tx.document.deleteMany({ where: { employeeId: id } });
+      // Delete attendance
+      await tx.attendance.deleteMany({ where: { employeeId: id } });
+      // Delete leaves
+      await tx.leaveBalance.deleteMany({ where: { employeeId: id } });
+      await tx.leaveRequest.deleteMany({ where: { employeeId: id } });
+      // Delete assets (unassign first or delete depending on business logic, here we just delete)
+      await tx.asset.deleteMany({ where: { assignedToId: id } });
+      // Delete audit logs
+      await tx.auditLog.deleteMany({ where: { recordId: id } });
+      
+      // Finally delete employee
+      await tx.employee.delete({
+        where: { id }
+      });
+    });
+
+    revalidatePath("/hr/employees");
+    return { success: true, message: "Employee profile deleted." };
+  } catch (error: any) {
+    console.error("Error deleting employee:", error);
+    return { success: false, message: error.message || "Failed to delete employee." };
+  }
+}
