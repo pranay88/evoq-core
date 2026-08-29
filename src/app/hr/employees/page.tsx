@@ -28,7 +28,7 @@ export default async function EmployeesPage(props: { searchParams: Promise<Searc
   const searchParams = await props.searchParams;
   const session = await getSession();
   const search = searchParams.search || '';
-  const siteId = searchParams.siteId || session?.siteId || '';
+  const siteId = searchParams.siteId !== undefined ? searchParams.siteId : (session?.siteId || '');
   const departmentId = searchParams.departmentId || '';
   const status = searchParams.status || '';
   const sort = searchParams.sort || 'fullName';
