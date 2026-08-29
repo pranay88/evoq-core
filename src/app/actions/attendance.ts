@@ -375,13 +375,18 @@ export async function markPortalAttendanceAction(emailOrId: string, password: st
 export async function logEmployeeAttendanceAction(type: 'CHECK_IN' | 'CHECK_OUT') {
   try {
     const session = await getSession();
-    if (!session || session.role !== 'EMPLOYEE') {
-      return { success: false, message: 'Unauthorized. Only Employees can log attendance.' };
-    }
-
-    const employee = await db.employee.findFirst({
-      where: { personalEmail: session.email }
-    });
+    if (!session) {
+        return { success: false, message: 'Unauthorized. Please login.' };
+      }
+  
+      const employee = await db.employee.findFirst({
+        where: {
+          OR: [
+            { personalEmail: { equals: session.email, mode: 'insensitive' } },
+            { officialEmail: { equals: session.email, mode: 'insensitive' } },
+          ]
+        }
+      });
 
     if (!employee) {
       return { success: false, message: 'Employee profile not found.' };
