@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
+import { getSession } from '@/lib/session';
 import { formatDate } from '@/lib/utils';
 import {
   Search,
@@ -25,8 +26,9 @@ interface SearchParams {
 
 export default async function EmployeesPage(props: { searchParams: Promise<SearchParams> }) {
   const searchParams = await props.searchParams;
+  const session = await getSession();
   const search = searchParams.search || '';
-  const siteId = searchParams.siteId || '';
+  const siteId = searchParams.siteId || session?.siteId || '';
   const departmentId = searchParams.departmentId || '';
   const status = searchParams.status || '';
   const sort = searchParams.sort || 'fullName';

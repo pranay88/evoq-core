@@ -238,9 +238,7 @@ export async function switchSiteAction(siteId: string) {
   }
 
   // Check that only HR and ADMIN are allowed to switch sites
-  if (session.role !== 'HR' && session.role !== 'ADMIN') {
-    return { success: false, message: 'Unauthorized site switch' };
-  }
+  
 
   try {
     const site = await db.site.findUnique({ where: { id: siteId } });

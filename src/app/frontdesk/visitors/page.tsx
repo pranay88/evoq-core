@@ -28,12 +28,16 @@ export default async function VisitorLogPage() {
     },
   });
 
+  // Fetch active sites
+  const sites = await db.site.findMany({ where: { status: 'ACTIVE' }, orderBy: { name: 'asc' } });
+  
   return (
     <VisitorsLog
       visitors={visitors}
       activeSiteId={siteId}
       activeSiteName={siteName}
       userRole={session.role}
+      sites={sites}
     />
   );
 }

@@ -552,7 +552,17 @@ export default function InventoryDashboard({
             )}
 
             <form action={createAction} className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans">
-              <input type="hidden" name="siteId" value={activeSiteId || ''} />
+              {activeSiteId ? (
+                <input type="hidden" name="siteId" value={activeSiteId} />
+              ) : (
+                <div className="sm:col-span-2">
+                  <label className="block font-semibold text-muted-foreground uppercase mb-1">Select Site *</label>
+                  <select name="siteId" required className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option value="">-- Select Site --</option>
+                    {sites.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block font-semibold text-muted-foreground uppercase mb-1">Item Code *</label>

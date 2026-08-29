@@ -74,8 +74,8 @@ export default function Navbar({ user, sites, onMenuToggle }: NavbarProps) {
     if (!siteId || siteId === user.siteId) return;
     const res = await switchSiteAction(siteId);
     if (res.success) {
-      router.refresh();
-    }
+        window.location.reload();
+      }
   };
 
   const markAllAsRead = () => {

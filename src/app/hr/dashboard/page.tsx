@@ -35,19 +35,24 @@ export default async function HrDashboard() {
   oneMonthAgo.setMonth(today.getMonth() - 1);
 
   // Run queries sequentially or in small batches to prevent connection pool exhaustion in serverless environments
-  const totalEmp = await db.employee.count();
-  const activeEmp = await db.employee.count({ where: { employmentStatus: { in: ['ACTIVE', 'CONFIRMED', 'PROBATION'] } } });
-  const probationEmp = await db.employee.count({ where: { employmentStatus: 'PROBATION' } });
-  const noticeEmp = await db.employee.count({ where: { employmentStatus: 'NOTICE' } });
-  const newJoiners = await db.employee.count({ where: { joiningDate: { gte: oneMonthAgo } } });
+  const siteFilter = session.siteId ? { siteId: session.siteId } : {};
+  const siteCodeFilter = session.siteCode ? { siteCode: session.siteCode } : {};
   
-  const absentToday = await db.attendance.count({ where: { date: today, status: 'Absent' } });
-  const pendingDocs = await db.document.count({ where: { verificationStatus: 'PENDING' } });
-  const pendingSubmissions = await db.employeeSubmission.count({ where: { status: 'PENDING' } });
-  const issuedAssets = await db.issuedAsset.count({ where: { status: 'Issued' } });
+  const totalEmp = await db.employee.count({ where: siteFilter });
+  const activeEmp = await db.employee.count({ where: { ...siteFilter, employmentStatus: { in: ['ACTIVE', 'CONFIRMED', 'PROBATION'] } } });
+  const probationEmp = await db.employee.count({ where: { ...siteFilter, employmentStatus: 'PROBATION' } });
+  const noticeEmp = await db.employee.count({ where: { ...siteFilter, employmentStatus: 'NOTICE' } });
+  const newJoiners = await db.employee.count({ where: { ...siteFilter, joiningDate: { gte: oneMonthAgo } } });
   
-  const recentActivity = await db.auditLog.findMany({ orderBy: { timestamp: 'desc' }, take: 6 });
-  const recentVisitors = await db.visitor.findMany({ orderBy: { entryTime: 'desc' }, take: 4, include: { site: true } });
+  // Note: attendance relation is to employee which has siteId. To keep it simple, we filter attendance if it has siteCode, else we don't.
+  // Actually attendance doesn't have siteId directly. It belongs to employee.
+  const absentToday = await db.attendance.count({ where: { date: today, status: 'Absent', employee: siteFilter } });
+  const pendingDocs = await db.document.count({ where: { verificationStatus: 'PENDING', employee: siteFilter } });
+  const pendingSubmissions = await db.employeeSubmission.count({ where: { status: 'PENDING' } }); // Not strictly tied to site yet
+  const issuedAssets = await db.issuedAsset.count({ where: { status: 'Issued', siteId: session.siteId || undefined } });
+  
+  const recentActivity = await db.auditLog.findMany({ where: siteCodeFilter, orderBy: { timestamp: 'desc' }, take: 6 });
+  const recentVisitors = await db.visitor.findMany({ where: siteFilter, orderBy: { entryTime: 'desc' }, take: 4, include: { site: true } });
   const reminders = await db.reminder.findMany({ where: { status: 'PENDING' }, orderBy: { date: 'asc' }, take: 4 });
   const festivals = await db.festival.findMany({ where: { date: { gte: today } }, orderBy: { date: 'asc' }, take: 2 });
   
