@@ -137,11 +137,16 @@ export default function EmployeeDashboardView({
     setAttLoading(false);
   };
 
-  // Find today's record to display status
-  const todayRecord = monthlyAttendance.length > 0 && 
-    new Date(monthlyAttendance[0].date).toDateString() === new Date().toDateString()
-      ? monthlyAttendance[0]
-      : null;
+  // Find a record waiting for checkout
+  const activeRecordWaitingForCheckout = monthlyAttendance.find(a => a.checkIn && !a.checkOut);
+  
+  // Sort to get most recent
+  const sortedAtt = [...monthlyAttendance].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  
+  // A record is considered "today's" if it was logged within the last 18 hours (handles UTC vs IST shifts)
+  const isRecent = sortedAtt.length > 0 && (new Date().getTime() - new Date(sortedAtt[0].date).getTime() < 18 * 60 * 60 * 1000);
+  
+  const todayRecord = activeRecordWaitingForCheckout || (isRecent ? sortedAtt[0] : null);
 
   return (
     <div className="space-y-8 font-sans animate-fade-in">
