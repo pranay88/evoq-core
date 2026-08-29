@@ -15,7 +15,7 @@ export default async function FrontDeskLayout({
     redirect('/login');
   }
 
-  if (session.role !== 'FRONT_DESK' && session.role !== 'HR') {
+  if (session.role !== 'FRONT_DESK' && session.role !== 'HR' && session.role !== 'SUPER_ADMIN') {
     redirect('/unauthorized');
   }
 
