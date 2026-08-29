@@ -54,10 +54,12 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
       const formData = new FormData();
       
 
-      // Append all saved text fields from local state because unmounted steps are not in rawFormData
-      Object.entries(savedData).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
+      // Copy all native text fields from the DOM
+        rawFormData.forEach((value, key) => {
+          if (!key.startsWith('file_')) {
+            formData.append(key, value);
+          }
+        });
 
       
       // Compress and append files
