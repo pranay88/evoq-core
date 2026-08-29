@@ -288,15 +288,10 @@ export default function UsersDashboard({
               </div>
 
               <div>
-                <label className="block font-semibold text-muted-foreground uppercase mb-1.5">Default Password *</label>
-                <input
-                  type="password"
-                  required
-                  value={createPass}
-                  onChange={(e) => setCreatePass(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                  placeholder="Default password (min 6 chars)"
-                />
+                <label className="block font-semibold text-muted-foreground uppercase mb-1.5">Default Password</label>
+                <div className="w-full px-3 py-2 bg-secondary border border-border rounded text-muted-foreground text-sm">
+                  Auto-generated as Firstname@evoq
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -308,6 +303,13 @@ export default function UsersDashboard({
                     className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="EMPLOYEE">Employee</option>
+                    <option value="CRM">CRM</option>
+                    <option value="ACCOUNTS">Accounts</option>
+                    <option value="IT">IT</option>
+                    <option value="DIGITAL">Digital</option>
+                    <option value="LEGAL">Legal</option>
+                    <option value="CIVIL">Civil</option>
+                    <option value="SUPERVISOR">Supervisor</option>
                     <option value="FRONT_DESK">Front Desk</option>
                     <option value="HR">HR Officer</option>
                     <option value="ADMIN">Administrator</option>
@@ -321,7 +323,7 @@ export default function UsersDashboard({
                     onChange={(e) => setCreateSiteId(e.target.value)}
                     className="w-full px-3 py-2 bg-background border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    {sites.map(s => (
+                    {sites.map((s: any) => (
                       <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
                     ))}
                   </select>

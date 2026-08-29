@@ -29,7 +29,7 @@ export async function createUserAction(
     return { success: false, message: 'Unauthorized. Only Super Admins can create Super Admins.' };
   }
 
-  if (!name || !email || !passwordVal || !role || !siteId) {
+  if (!name || !email || !role || !siteId) {
     return { success: false, message: 'Missing required account registration fields.' };
   }
 
@@ -43,7 +43,9 @@ export async function createUserAction(
       return { success: false, message: `Email ${email} is already registered.` };
     }
 
-    const hashedPassword = hashPassword(passwordVal);
+    const defaultPassword = `${name.split(' ')[0]}@evoq`;
+    const finalPassword = passwordVal || defaultPassword;
+    const hashedPassword = hashPassword(finalPassword);
 
     const result = await db.$transaction(async (tx) => {
       const newUser = await tx.user.create({
@@ -57,7 +59,9 @@ export async function createUserAction(
         },
       });
 
-      if (role === 'EMPLOYEE') {
+      const isEmployeeRole = ['EMPLOYEE', 'CRM', 'ACCOUNTS', 'IT', 'DIGITAL', 'LEGAL', 'CIVIL', 'SUPERVISOR'].includes(role);
+
+      if (isEmployeeRole) {
         const existingEmployee = await tx.employee.findFirst({
           where: {
             OR: [

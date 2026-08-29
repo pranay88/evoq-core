@@ -115,6 +115,15 @@ function getDashboardUrl(role: string): string {
       return '/admin/dashboard';
     case 'FRONT_DESK':
       return '/frontdesk/dashboard';
+    case 'EMPLOYEE':
+    case 'CRM':
+    case 'ACCOUNTS':
+    case 'IT':
+    case 'DIGITAL':
+    case 'LEGAL':
+    case 'CIVIL':
+    case 'SUPERVISOR':
+      return '/employee/dashboard';
     default:
       return '/unauthorized';
   }

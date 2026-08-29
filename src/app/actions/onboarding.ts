@@ -247,41 +247,67 @@ export async function approveSubmissionAction(
     const nextSeq = 101 + empCount;
     const employeeId = `EVOQ${nextSeq}`;
 
-    // Database transaction to create employee and save uploaded documents
+    // Database transaction to create/update employee and save uploaded documents
     const result = await db.$transaction(async (tx) => {
-      // 1. Create Employee
-      const employee = await tx.employee.create({
-        data: {
-          employeeId,
-          fullName: data.fullName,
-          dateOfBirth: new Date(data.dateOfBirth),
-          gender: data.gender,
-          bloodGroup: data.bloodGroup || null,
-          mobileNumber: data.mobileNumber,
-          personalEmail: data.personalEmail,
-          currentAddress: data.currentAddress,
-          permanentAddress: data.permanentAddress,
-          emergencyContactName: data.emergencyContactName,
-          emergencyContactNumber: data.emergencyContactNumber,
-          emergencyContactRelationship: data.emergencyContactRelationship,
-          
-          departmentId,
-          designation,
-          siteId,
-          joiningDate: new Date(joiningDateVal),
-          employmentType,
-          employmentStatus: 'ACTIVE',
-          baseSalary,
-          
-          bankName: data.bankName || null,
-          bankAccountHolderName: data.bankAccountHolderName || null,
-          bankAccountNumber: data.bankAccountNumber || null,
-          bankIfscCode: data.bankIfscCode || null,
-          panNumber: data.panNumber || null,
-          aadhaarNumber: data.aadhaarNumber || null,
-          uanNumber: data.uanNumber || null,
-        },
+      // 1. Check if Employee placeholder exists (created during User Registration)
+      const existingEmployee = await tx.employee.findFirst({
+        where: {
+          OR: [
+            { personalEmail: data.personalEmail },
+            { officialEmail: data.personalEmail }
+          ]
+        }
       });
+
+      let employee;
+      const empData = {
+        fullName: data.fullName,
+        dateOfBirth: new Date(data.dateOfBirth),
+        gender: data.gender,
+        bloodGroup: data.bloodGroup || null,
+        mobileNumber: data.mobileNumber,
+        personalEmail: data.personalEmail,
+        currentAddress: data.currentAddress,
+        permanentAddress: data.permanentAddress,
+        emergencyContactName: data.emergencyContactName,
+        emergencyContactNumber: data.emergencyContactNumber,
+        emergencyContactRelationship: data.emergencyContactRelationship,
+        
+        departmentId,
+        designation,
+        siteId,
+        joiningDate: new Date(joiningDateVal),
+        employmentType,
+        employmentStatus: 'ACTIVE',
+        baseSalary,
+        
+        bankName: data.bankName || null,
+        bankAccountHolderName: data.bankAccountHolderName || null,
+        bankAccountNumber: data.bankAccountNumber || null,
+        bankIfscCode: data.bankIfscCode || null,
+        panNumber: data.panNumber || null,
+        aadhaarNumber: data.aadhaarNumber || null,
+        uanNumber: data.uanNumber || null,
+      };
+
+      if (existingEmployee) {
+        employee = await tx.employee.update({
+          where: { id: existingEmployee.id },
+          data: empData
+        });
+      } else {
+        const empCount = await tx.employee.count();
+        const nextSeq = 101 + empCount;
+        const uniqueSuffix = Date.now().toString().slice(-4);
+        const employeeId = `EVOQ${nextSeq}-${uniqueSuffix}`;
+        
+        employee = await tx.employee.create({
+          data: {
+            ...empData,
+            employeeId
+          }
+        });
+      }
 
       // 2. Add Uploaded Documents into the Document Registry
       if (data.documents) {
