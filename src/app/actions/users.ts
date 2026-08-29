@@ -45,64 +45,69 @@ export async function createUserAction(
 
     const hashedPassword = hashPassword(passwordVal);
 
-    const newUser = await db.user.create({
-      data: {
-        name,
-        email,
-        passwordHash: hashedPassword,
-        role,
-        siteId,
-        status: 'ACTIVE',
-      },
-    });
-
-    if (role === 'EMPLOYEE') {
-      const existingEmployee = await db.employee.findFirst({
-        where: {
-          OR: [
-            { personalEmail: email },
-            { officialEmail: email }
-          ]
-        }
+    const result = await db.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          name,
+          email,
+          passwordHash: hashedPassword,
+          role,
+          siteId,
+          status: 'ACTIVE',
+        },
       });
 
-      if (!existingEmployee) {
-        const empCount = await db.employee.count();
-        const nextSeq = 101 + empCount;
-        const employeeId = `EVOQ${nextSeq}`;
-
-        let dept = await db.department.findFirst();
-        if (!dept) {
-          dept = await db.department.create({ data: { name: 'General', code: 'GEN', headName: 'Admin', status: 'ACTIVE' } });
-        }
-
-        await db.employee.create({
-          data: {
-            employeeId,
-            fullName: name,
-            personalEmail: email,
-            officialEmail: email,
-            mobileNumber: 'PENDING',
-            dateOfBirth: new Date(),
-            gender: 'PENDING',
-            currentAddress: 'PENDING',
-            permanentAddress: 'PENDING',
-            emergencyContactName: 'PENDING',
-            emergencyContactNumber: 'PENDING',
-            emergencyContactRelationship: 'PENDING',
-            departmentId: dept.id,
-            designation: 'PENDING',
-            siteId: siteId,
-            joiningDate: new Date(),
-            employmentType: 'FULL_TIME',
-            employmentStatus: 'ACTIVE',
+      if (role === 'EMPLOYEE') {
+        const existingEmployee = await tx.employee.findFirst({
+          where: {
+            OR: [
+              { personalEmail: email },
+              { officialEmail: email }
+            ]
           }
         });
+
+        if (!existingEmployee) {
+          const empCount = await tx.employee.count();
+          // Use timestamp to guarantee unique employeeId in high concurrency, avoiding duplicate EVOQ105 etc
+          const nextSeq = 101 + empCount;
+          const uniqueSuffix = Date.now().toString().slice(-4);
+          const employeeId = `EVOQ${nextSeq}-${uniqueSuffix}`;
+
+          let dept = await tx.department.findFirst();
+          if (!dept) {
+            dept = await tx.department.create({ data: { name: 'General', code: 'GEN', headName: 'Admin', status: 'ACTIVE' } });
+          }
+
+          await tx.employee.create({
+            data: {
+              employeeId,
+              fullName: name,
+              personalEmail: email,
+              officialEmail: email,
+              mobileNumber: 'PENDING',
+              dateOfBirth: new Date(),
+              gender: 'PENDING',
+              currentAddress: 'PENDING',
+              permanentAddress: 'PENDING',
+              emergencyContactName: 'PENDING',
+              emergencyContactNumber: 'PENDING',
+              emergencyContactRelationship: 'PENDING',
+              departmentId: dept.id,
+              designation: 'PENDING',
+              siteId: siteId,
+              joiningDate: new Date(),
+              employmentType: 'FULL_TIME',
+              employmentStatus: 'ACTIVE',
+            }
+          });
+        }
       }
-    }
+      return newUser;
+    });
 
     await logAudit(session.userId, session.name, session.role, 'USERS', 'CREATE_USER', {
-      recordId: newUser.id,
+      recordId: result.id,
       newValues: { name, email, role, siteId },
       siteCode: session.siteCode,
     });
@@ -111,9 +116,9 @@ export async function createUserAction(
 
     return { success: true, message: `User account for ${name} registered successfully.` };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create user error:', error);
-    return { success: false, message: 'Failed to create user account.' };
+    return { success: false, message: `Failed to create user account: ${error?.message || 'Unknown error'}` };
   }
 }
 
