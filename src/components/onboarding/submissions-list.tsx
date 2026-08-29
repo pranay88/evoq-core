@@ -419,22 +419,25 @@ export default function SubmissionsList({ submissions, departments, sites }: Sub
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                   {getCandidateData(selectedSub).documents &&
-                    Object.entries(getCandidateData(selectedSub).documents).map(([category, fileDetails]: any) => (
-                      <div key={category} className="p-3 bg-card border border-border rounded flex flex-col justify-between">
-                        <div>
-                          <span className="font-semibold text-foreground block">{category}</span>
-                          <span className="text-[10px] text-muted-foreground truncate block mt-0.5">{fileDetails.name}</span>
+                    Object.entries(getCandidateData(selectedSub).documents).flatMap(([category, files]: any) => {
+                      const fileArray = Array.isArray(files) ? files : [files];
+                      return fileArray.map((file: any, idx: number) => (
+                        <div key={`${category}-${idx}`} className="p-3 bg-card border border-border rounded flex flex-col justify-between">
+                          <div>
+                            <span className="font-semibold text-foreground block">{category} {fileArray.length > 1 ? `(${idx + 1})` : ''}</span>
+                            <span className="text-[10px] text-muted-foreground truncate block mt-0.5" title={file.name}>{file.name}</span>
+                          </div>
+                          <a
+                            href={file.path}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline text-xs font-semibold inline-flex items-center gap-1 mt-3.5"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View Scan
+                          </a>
                         </div>
-                        <a
-                          href={fileDetails.path}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline text-xs font-semibold inline-flex items-center gap-1 mt-3.5"
-                        >
-                          <Eye className="w-3.5 h-3.5" /> View Scan
-                        </a>
-                      </div>
-                    ))}
+                      ));
+                    })}
                 </div>
               </div>
             </div>
