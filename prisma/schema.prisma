@@ -75,6 +75,8 @@ model Employee {
   fullName                     String
   photoUrl                     String?
   dateOfBirth                  DateTime
+  timeOfBirth                  String?
+  placeOfBirth                 String?
   gender                       String
   bloodGroup                   String?
   mobileNumber                 String

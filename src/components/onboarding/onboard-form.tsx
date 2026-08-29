@@ -144,6 +144,29 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                 </div>
 
                 <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Time of Birth *</label>
+                  <input
+                    name="timeOfBirth"
+                    defaultValue={savedData["timeOfBirth"] || ""}
+                    type="time"
+                    required
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Place of Birth *</label>
+                  <input
+                    name="placeOfBirth"
+                    defaultValue={savedData["placeOfBirth"] || ""}
+                    type="text"
+                    required
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="City, State"
+                  />
+                </div>
+
+                <div>
                   <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Gender *</label>
                   <select
                     name="gender"
@@ -191,24 +214,48 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Personal Email (Primary) *</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Official Email *</label>
                   <input
-                    name="personalEmail"
+                    name="officialEmail"
                     type="email"
                     required
                     readOnly
                     value={defaultEmail}
-                    className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-muted-foreground focus:outline-none"
+                    className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-muted-foreground focus:outline-none cursor-not-allowed"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Mobile Number *</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Official Phone</label>
+                  <input
+                    name="officialPhone"
+                    type="tel"
+                    readOnly
+                    value={defaultPhone || ''}
+                    className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-muted-foreground focus:outline-none cursor-not-allowed"
+                    placeholder="Not provided"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Personal Email *</label>
+                  <input
+                    name="personalEmail"
+                    type="email"
+                    required
+                    defaultValue={savedData["personalEmail"] || ""}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="your.name@gmail.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Personal Mobile Number *</label>
                   <input
                     name="mobileNumber"
                     type="tel"
                     required
-                    defaultValue={savedData["mobileNumber"] || defaultPhone || ''}
+                    defaultValue={savedData["mobileNumber"] || ""}
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     placeholder="+91 98765 43210"
                   />
