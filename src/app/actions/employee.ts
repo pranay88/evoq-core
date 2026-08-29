@@ -27,8 +27,8 @@ export async function getEmployeeDashboardDataAction() {
     const employee = await db.employee.findFirst({
       where: {
         OR: [
-          { personalEmail: user.email },
-          { officialEmail: user.email },
+          { personalEmail: { equals: user.email, mode: 'insensitive' } },
+          { officialEmail: { equals: user.email, mode: 'insensitive' } },
         ],
       },
       include: {

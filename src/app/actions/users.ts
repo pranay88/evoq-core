@@ -66,8 +66,8 @@ export async function createUserAction(
         const existingEmployee = await tx.employee.findFirst({
           where: {
             OR: [
-              { personalEmail: email },
-              { officialEmail: email }
+              { personalEmail: { equals: email, mode: 'insensitive' } },
+              { officialEmail: { equals: email, mode: 'insensitive' } }
             ]
           }
         });
