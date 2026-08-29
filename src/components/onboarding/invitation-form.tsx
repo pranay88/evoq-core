@@ -2,6 +2,8 @@
 
 import { useState, useActionState, useEffect } from 'react';
 import { generateInvitationAction } from '@/app/actions/onboarding';
+import { sendOnboardingEmail } from '@/app/actions/email';
+import { Mail, MessageSquare } from 'lucide-react';
 import { Send, Loader2, Link2, Copy, CheckCircle2 } from 'lucide-react';
 
 const initialState = {
@@ -23,6 +25,8 @@ export default function InvitationForm() {
   );
 
   const [copied, setCopied] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{success?: boolean, message?: string}>({});
 
   useEffect(() => {
     if (state.success) {
@@ -34,6 +38,16 @@ export default function InvitationForm() {
   const getFullOnboardingUrl = () => {
     if (typeof window === 'undefined') return '';
     return `${window.location.origin}/onboard/${state.token}`;
+  };
+
+  
+  const handleSendEmail = async () => {
+    if (!state.token || !email) return;
+    setIsSendingEmail(true);
+    setEmailStatus({});
+    const res = await sendOnboardingEmail(email, getFullOnboardingUrl());
+    setEmailStatus(res);
+    setIsSendingEmail(false);
   };
 
   const copyToClipboard = () => {
@@ -79,7 +93,35 @@ export default function InvitationForm() {
                 <Copy className="w-4 h-4" />
               )}
             </button>
+
           </div>
+          
+          <div className="flex items-center gap-2 mt-3">
+            <button
+              type="button"
+              onClick={handleSendEmail}
+              disabled={isSendingEmail}
+              className="flex-1 flex justify-center items-center gap-1.5 py-1.5 bg-secondary/50 hover:bg-secondary text-secondary-foreground border border-border text-xs rounded transition-colors disabled:opacity-50"
+            >
+              {isSendingEmail ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+              {emailStatus.success ? 'Email Sent!' : 'Send via Email'}
+            </button>
+            <a
+              href={`https://wa.me/${phone.replace(/[^0-9]/g, '') || ''}?text=Hi%2C%20welcome%20to%20House%20of%20Evoq%21%20Please%20complete%20your%20onboarding%20registration%20using%20this%20secure%20link%3A%20${encodeURIComponent(getFullOnboardingUrl())}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 flex justify-center items-center gap-1.5 py-1.5 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] border border-[#25D366]/30 text-xs font-medium rounded transition-colors"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              Send via WhatsApp
+            </a>
+          </div>
+          {emailStatus.message && (
+            <div className={`text-[10px] mt-1 ${emailStatus.success ? 'text-emerald-600' : 'text-rose-600'}`}>
+              {emailStatus.message}
+            </div>
+          )}
+
         </div>
       ) : null}
 
