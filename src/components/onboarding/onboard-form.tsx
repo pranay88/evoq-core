@@ -110,6 +110,7 @@ export default function OnboardForm({ token, defaultEmail, defaultPhone }: Onboa
             <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-md text-xs">
               {state.message}
             </div>
+          )}
 
           {/* STEP 1: Personal Profile */}
           <div className={`space-y-6 ${step !== 1 ? 'hidden' : ''}`}>
