@@ -267,3 +267,14 @@ export async function switchSiteAction(siteId: string) {
     return { success: false, message: 'Failed to switch site context.' };
   }
 }
+
+export async function performLogoutAction() {
+  const session = await getSession();
+  if (session) {
+    try {
+      await logAudit(session.userId, session.name, session.role, 'AUTH', 'LOGOUT');
+    } catch (e) {}
+  }
+  await clearSession();
+  redirect('/login');
+}

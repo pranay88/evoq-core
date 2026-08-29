@@ -110,12 +110,7 @@ export default function EmployeeDashboardView({
     setLeaveLoading(false);
   };
 
-  const handleLogout = async () => {
-    if (!confirm('Are you sure you want to log out?')) return;
-    // The server action now performs the redirect natively, guaranteeing the Set-Cookie header is processed
-    await logoutAction('session', 'Employee', 'EMPLOYEE');
-  };
-
+  
   const [attLoading, setAttLoading] = useState(false);
   const [attError, setAttError] = useState('');
   const [attSuccess, setAttSuccess] = useState('');
@@ -207,9 +202,11 @@ export default function EmployeeDashboardView({
             <button onClick={() => setLeaveModalOpen(true)} className="flex-1 text-xs text-center text-primary-foreground bg-primary hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 border border-primary py-2 rounded-lg">
               <CalendarCheck className="w-4 h-4" /> Apply Leave
             </button>
-            <button onClick={handleLogout} className="flex-1 text-xs text-center text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1.5 border border-border bg-secondary/50 py-2 rounded-lg hover:bg-secondary">
-              <LogOut className="w-4 h-4" /> Sign Out
-            </button>
+            <form action={performLogoutAction} className="flex-1 flex" onSubmit={(e) => { if(!confirm('Are you sure you want to log out?')) e.preventDefault(); }}>
+              <button type="submit" className="w-full text-xs text-center text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1.5 border border-border bg-secondary/50 py-2 rounded-lg hover:bg-secondary">
+                <LogOut className="w-4 h-4" /> Sign Out
+              </button>
+            </form>
           </div>
         </div>
       </div>
