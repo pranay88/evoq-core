@@ -67,6 +67,7 @@ export async function generateInvitationAction(email: string, phone?: string, al
       success: true,
       message: 'Invitation link generated successfully.',
       token,
+      email,
     };
   } catch (error) {
     console.error('Generate invitation error:', error);

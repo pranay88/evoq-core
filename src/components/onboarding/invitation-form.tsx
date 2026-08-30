@@ -10,6 +10,7 @@ const initialState = {
   success: false,
   message: '',
   token: '',
+  email: '',
 };
 
 export default function InvitationForm() {
@@ -43,10 +44,11 @@ export default function InvitationForm() {
 
   
   const handleSendEmail = async () => {
-    if (!state.token || !email) return;
+    const targetEmail = state.email || email;
+    if (!state.token || !targetEmail) return;
     setIsSendingEmail(true);
     setEmailStatus({});
-    const res = await sendOnboardingEmail(email, getFullOnboardingUrl());
+    const res = await sendOnboardingEmail(targetEmail, getFullOnboardingUrl());
     setEmailStatus(res);
     setIsSendingEmail(false);
   };
