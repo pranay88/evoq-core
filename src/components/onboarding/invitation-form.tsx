@@ -19,7 +19,8 @@ export default function InvitationForm() {
     (async (prevState: any, formData: FormData) => {
       const emailVal = formData.get('email') as string;
       const phoneVal = formData.get('phone') as string;
-      return generateInvitationAction(emailVal, phoneVal);
+      const allowExisting = formData.get('allowExisting') === 'on';
+      return generateInvitationAction(emailVal, phoneVal, allowExisting);
     }) as any,
     initialState
   );

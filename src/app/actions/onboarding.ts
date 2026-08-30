@@ -15,7 +15,7 @@ const supabase = createClient(
 );
 
 // Generate a secure self-onboarding invitation
-export async function generateInvitationAction(email: string, phone?: string) {
+export async function generateInvitationAction(email: string, phone?: string, allowExisting?: boolean) {
   const session = await getSession();
   if (!session || session.role !== 'HR') {
     return { success: false, message: 'Unauthorized. Only HR can generate invitations.' };
@@ -33,8 +33,12 @@ export async function generateInvitationAction(email: string, phone?: string) {
       },
     });
 
-    if (existingEmp) {
-      return { success: false, message: 'An employee with this email already exists.' };
+    if (existingEmp && !allowExisting) {
+      return { 
+        success: false, 
+        message: 'An employee with this email already exists.',
+        isExisting: true 
+      };
     }
 
     const token = crypto.randomUUID();
