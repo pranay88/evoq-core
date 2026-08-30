@@ -142,6 +142,15 @@ export default function InvitationForm() {
             placeholder="candidate@email.com"
           />
         </div>
+        
+        {!state.success && state.isExisting && (
+          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded">
+            <input type="checkbox" id="allowExisting" name="allowExisting" className="w-4 h-4 text-primary" />
+            <label htmlFor="allowExisting" className="text-amber-800 text-xs">
+              Yes, generate a link to update this existing employee's information.
+            </label>
+          </div>
+        )}
 
         <div>
           <label htmlFor="phone" className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">
